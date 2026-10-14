@@ -12,7 +12,7 @@ DebugKit provides a debugging toolbar and enhanced debugging tools for CakePHP 2
 applications. This is a fork of [cakephp/debug_kit](https://github.com/cakephp/debug_kit)
 for [pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp).
 
-![DebugKit toolbar](docs/img/legacy/sql_log.png)
+![DebugKit toolbar](docs/img/sql_log.png)
 
 ## Requirements
 
@@ -32,6 +32,11 @@ See [Installation](docs/README.md#installation) for the details, including the
 ## Documentation
 
 See the [documentation](docs/README.md).
+
+## Credits
+
+The toolbar is ported from [cakephp/debug_kit](https://github.com/cakephp/debug_kit) 5.x
+(MIT License, Copyright (c) Cake Software Foundation, Inc.). See [NOTICE](NOTICE).
 
 ## Reporting Issues
 
