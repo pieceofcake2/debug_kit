@@ -281,9 +281,23 @@ name is the underscored class name: `SessionPanel` uses `session_panel.ctp`, and
 The element is rendered at the end of the request, with the view of the request when the
 page is rendered with the HTML toolbar, and the rendered HTML is stored. The toolbar shows
 it inside `<div class="panel-content" id="<panel>-tab">`, where `<panel>` is the
-underscored panel name. The toolbar page includes jQuery 3. Panel JavaScript written for
-the 2.2.x toolbar that registers modules with `DEBUGKIT.loader.register()` keeps working:
-the modules' `init()` is called every time a panel is loaded.
+underscored panel name. The toolbar does not include jQuery or any other library, so
+panel JavaScript must bundle what it needs. Every time a panel has been loaded, an
+`initPanel` event is dispatched on `document` with the panel name prefixed with `panel` as
+`detail` (for example `panelmy_custom`):
+
+```js
+document.addEventListener('initPanel', (event) => {
+  if (event.detail !== 'panelmy_custom') {
+    return;
+  }
+  document.querySelectorAll('#my_custom-tab .my-row').forEach((row) => {
+    // ...
+  });
+});
+```
+
+`<script>` elements of the panel content are run when the panel is loaded.
 
 Panels pick up their title and element name by convention. To change them, set these
 properties:
@@ -349,11 +363,12 @@ FireCake and the `ToolbarAccess` controller keep working. Behaviour changes:
   toolbar uses `webroot/css/style.css` and `webroot/js/main.js`. The default values of
   `ToolbarComponent::$javascript` and `ToolbarComponent::$css` are now empty arrays; they
   list additional assets loaded into the toolbar iframe.
-- Panel `css`/`javascript` files are loaded into the toolbar iframe. jQuery was upgraded
-  from 1.11 to 3.6 (the version shipped by DebugKit 5); jQuery APIs removed in 3.0 (for
-  example `jqXHR.success()`) are no longer available to panel JavaScript. Only
-  `DEBUGKIT.module()`, `DEBUGKIT.loader`, `DEBUGKIT.$` and `DEBUGKIT.Util.Cookie` of the
-  old `DEBUGKIT` namespace are provided.
+- The toolbar no longer ships jQuery, nor the `DEBUGKIT` JavaScript API of the 2.x
+  toolbar (`DEBUGKIT.module()`, `DEBUGKIT.loader`, `DEBUGKIT.$`, `DEBUGKIT.Util.Cookie`,
+  ...). Panel `css`/`javascript` files (`DebugPanel::$css`, `DebugPanel::$javascript`) are
+  still loaded into the toolbar iframe, but panel JavaScript must not rely on jQuery or the
+  old API: bundle what it needs and use the `initPanel` event (see
+  [Panel Elements](#panel-elements)) instead of `DEBUGKIT.loader.register()`.
 - The built-in elements no longer print their own `<h2>` title, the toolbar shows the
   panel title.
 - `ToolbarHelper::getQueryLogs()` no longer clears the query log of the connection.
