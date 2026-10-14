@@ -130,6 +130,62 @@ class DebugKitDatabaseStorageTest extends CakeTestCase
     }
 
     /**
+     * Test that every indexed string column fits in the 767 byte index limit of MySQL 5.6 with utf8mb4.
+     *
+     * @return void
+     */
+    public function testIndexedColumnsFitInnoDbKeyLimit(): void
+    {
+        $mysql = $this->getMockBuilder('Mysql')->disableOriginalConstructor()->getMock();
+        foreach (DebugKitDatabaseStorage::tableSchema($mysql) as $table => $fields) {
+            foreach ($fields['indexes'] as $name => $index) {
+                foreach ((array)$index['column'] as $column) {
+                    $field = $fields[$column];
+                    if ($field['type'] !== 'string') {
+                        continue;
+                    }
+                    $this->assertLessThanOrEqual(
+                        767,
+                        $field['length'] * 4,
+                        sprintf('%s.%s in the %s index is too long for utf8mb4 on MySQL 5.6', $table, $column, $name),
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Test that the storage tables can be created with utf8mb4 on MySQL.
+     *
+     * MySQL 5.6 rejects an index column longer than 767 bytes ("Specified key was too long").
+     *
+     * @return void
+     */
+    public function testCreateTablesWithUtf8mb4OnMysql(): void
+    {
+        $db = ConnectionManager::getDataSource('test');
+        $this->skipIf(!$db instanceof Mysql, 'This test requires MySQL.');
+
+        $prefix = 'debug_kit_utf8mb4_';
+        $tables = [];
+        foreach (DebugKitDatabaseStorage::tableSchema($db) as $table => $fields) {
+            $fields['tableParameters'] = ['charset' => 'utf8mb4', 'collate' => 'utf8mb4_unicode_ci', 'engine' => 'InnoDB'];
+            $tables[$prefix . $table] = $fields;
+        }
+        $schema = new CakeSchema(['name' => 'DebugKitUtf8mb4']);
+        $schema->tables = $tables;
+        try {
+            foreach (array_keys($tables) as $table) {
+                $this->assertTrue($db->execute($db->createSchema($schema, $table)));
+            }
+        } finally {
+            foreach (array_keys($tables) as $table) {
+                $db->execute('DROP TABLE IF EXISTS ' . $db->fullTableName($table));
+            }
+        }
+    }
+
+    /**
      * Test that panels larger than 64 KB are stored in the test database.
      *
      * @return void

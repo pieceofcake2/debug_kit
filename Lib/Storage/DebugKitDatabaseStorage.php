@@ -29,6 +29,10 @@ class DebugKitDatabaseStorage implements DebugKitStorageInterface
     /**
      * Schema of the storage tables, in CakeSchema format.
      *
+     * The `panel` column is part of a unique index, so it is limited to 191 characters: with
+     * utf8mb4, MySQL 5.6 (and 5.7 without large index prefixes) rejects index columns longer
+     * than 767 bytes, and 191 is the longest utf8mb4 VARCHAR that fits.
+     *
      * @var array
      */
     public static $schema = [
@@ -48,7 +52,7 @@ class DebugKitDatabaseStorage implements DebugKitStorageInterface
         'panels' => [
             'id' => ['type' => 'string', 'length' => 36, 'null' => false, 'key' => 'primary'],
             'request_id' => ['type' => 'string', 'length' => 36, 'null' => false],
-            'panel' => ['type' => 'string', 'length' => 255, 'null' => false],
+            'panel' => ['type' => 'string', 'length' => 191, 'null' => false],
             'title' => ['type' => 'string', 'length' => 255, 'null' => true],
             'element' => ['type' => 'string', 'length' => 255, 'null' => true],
             'summary' => ['type' => 'string', 'length' => 255, 'null' => true],
