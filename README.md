@@ -31,8 +31,7 @@ See [Installation](docs/README.md#installation) for the details, including the
 
 ## Documentation
 
-See the [documentation](docs/README.md). The original documentation for the 2.x line is
-in the [upstream 2.2 branch README](https://github.com/cakephp/debug_kit/blob/2.2/README.md).
+See the [documentation](docs/README.md).
 
 ## Reporting Issues
 

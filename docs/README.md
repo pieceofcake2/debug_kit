@@ -2,9 +2,7 @@
 
 DebugKit adds a debugging toolbar to CakePHP 2 applications. This plugin is a fork of
 [cakephp/debug_kit](https://github.com/cakephp/debug_kit) for
-[pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp). The original
-documentation for the 2.x line is in the
-[upstream 2.2 branch README](https://github.com/cakephp/debug_kit/blob/2.2/README.md).
+[pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp).
 
 - [Installation](#installation)
 - [Toolbar Panels](#toolbar-panels)
