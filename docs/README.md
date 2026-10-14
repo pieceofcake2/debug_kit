@@ -191,7 +191,7 @@ and the toolbar is not shown.
 | --- | --- | --- |
 | `requestCount` | `20` | Number of requests to keep. |
 | `storage` | `auto` | `auto` uses the database and falls back to the cache, `database` or `cache` force one of them. |
-| `connection` | `debug_kit` | Connection name. If your `database.php` defines a connection with this name, it is used (and the tables are created in it) instead of the SQLite file. |
+| `connection` | `debug_kit` | Connection name. If your `database.php` defines a connection with this name, it is used (and the tables are created in it) instead of the SQLite file. On MySQL, the panel content column is created as `LONGTEXT`, because `TEXT` holds at most 64 KB. |
 | `database` | `TMP . 'debug_kit.sqlite'` | SQLite file used when the connection is created. |
 
 The toolbar endpoints only read `Configure::read('DebugKit')`, so put storage settings
