@@ -9,7 +9,6 @@ cakephp/debug_kit 5.x or adapted from it, and keep its copyright notice:
 - webroot/css/style.css
 - webroot/css/reset.css (based on the public domain Meyer reset)
 - webroot/img/cake.icon.png
-- webroot/js/jquery.js (jQuery 3.6.0, Copyright OpenJS Foundation and other contributors, MIT License)
 - webroot/js/inject-iframe.js
 - webroot/js/main.js
 - webroot/js/modules/Helper.js

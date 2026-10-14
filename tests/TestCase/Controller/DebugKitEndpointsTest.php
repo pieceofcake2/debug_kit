@@ -84,7 +84,8 @@ class DebugKitEndpointsTest extends ControllerTestCase
         $this->assertStringContainsString('debug_kit/css/style.css', $result);
         $this->assertStringContainsString('my_plugin/css/panel.css', $result);
         $this->assertStringContainsString('my_plugin/js/panel.js', $result);
-        $this->assertStringContainsString('debug_kit/js/jquery.js', $result);
+        $this->assertStringNotContainsString('debug_kit/js/jquery.js', $result);
+        $this->assertStringNotContainsString('debug_kit/js/legacy.js', $result);
         $this->assertMatchesRegularExpression(
             '#<script id="__debug_kit_app" type="module" src="[^"]*debug_kit/js/main.js[^"]*" data-id="' . self::REQUEST_ID . '"#',
             $result,

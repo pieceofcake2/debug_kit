@@ -13,24 +13,37 @@
  * @link          https://cakephp.org CakePHP(tm) Project
  * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
-export default (($) => {
+export default (() => {
   const init = () => {
-    const lists = $('.c-panel-content-container__content .neat-array.depth-0');
-    lists.find('ul').each(function collapse() {
-      const list = $(this);
-      list.parent().addClass('expandable');
-      if (list.hasClass('expanded')) {
-        list.parent().addClass('expanded');
-      } else {
-        list.hide().parent().addClass('collapsed');
-      }
+    const lists = document.querySelectorAll('.c-panel-content-container__content .neat-array.depth-0');
+    lists.forEach((root) => {
+      root.querySelectorAll('ul').forEach((list) => {
+        const item = list.parentElement;
+        item.classList.add('expandable');
+        if (list.classList.contains('expanded')) {
+          item.classList.add('expanded');
+        } else {
+          list.style.display = 'none';
+          item.classList.add('collapsed');
+        }
+      });
     });
   };
 
   const onEvent = () => {
-    $(document).on('click', '.neat-array li.expandable', function toggle(event) {
+    document.addEventListener('click', (event) => {
+      const item = event.target instanceof Element ? event.target.closest('.neat-array li.expandable') : null;
+      if (!item) {
+        return;
+      }
       event.stopPropagation();
-      $(this).toggleClass('expanded collapsed').children('ul').toggle();
+      item.classList.toggle('expanded');
+      item.classList.toggle('collapsed');
+      Array.from(item.children)
+        .filter((child) => child.tagName === 'UL')
+        .forEach((list) => {
+          list.style.display = list.style.display === 'none' ? '' : 'none';
+        });
     });
     document.addEventListener('initPanel', init);
   };
@@ -38,4 +51,4 @@ export default (($) => {
   return {
     onEvent,
   };
-})(jQuery);
+})();
