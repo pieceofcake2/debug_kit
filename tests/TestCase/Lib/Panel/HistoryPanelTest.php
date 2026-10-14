@@ -29,4 +29,16 @@ class HistoryPanelTest extends CakeTestCase
 
         $this->assertSame([], $panel->beforeRender(new Controller()));
     }
+
+    /**
+     * Test the summary.
+     *
+     * @return void
+     */
+    public function testSummary(): void
+    {
+        $panel = new HistoryPanel(['history' => 3]);
+        $this->assertSame(3, $panel->history);
+        $this->assertSame('0 xhr', $panel->summary());
+    }
 }

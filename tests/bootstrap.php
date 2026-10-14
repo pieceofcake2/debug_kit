@@ -20,3 +20,10 @@ require_once InstalledVersions::getInstallPath('pieceofcake2/cakephp') . DS . 't
 CakePlugin::load('DebugKit', [
     'path' => dirname(__DIR__) . DS,
 ]);
+
+// Keep the toolbar storage of the test run in memory.
+App::uses('ConnectionManager', 'Model');
+ConnectionManager::create('debug_kit', [
+    'datasource' => 'Database/Sqlite',
+    'database' => ':memory:',
+]);

@@ -16,6 +16,8 @@ App::uses('AppController', 'Controller');
 App::uses('ToolbarComponent', 'DebugKit.Controller/Component');
 App::uses('DebugMemory', 'DebugKit.Lib');
 App::uses('DebugTimer', 'DebugKit.Lib');
+App::uses('DebugKitStorage', 'DebugKit.Lib/Storage');
+App::uses('DebugPanel', 'DebugKit.Lib');
 
 /**
  * Class TestToolbarComponent
@@ -34,6 +36,37 @@ class TestToolbarComponent extends ToolbarComponent
     public function loadPanels($panels, $settings = []): void
     {
         $this->_loadPanels($panels, $settings);
+    }
+
+    /**
+     * Set the storage.
+     *
+     * @param DebugKitStorageInterface|false|null $storage The storage.
+     * @return void
+     */
+    public function setStorage($storage): void
+    {
+        $this->_storage = $storage;
+    }
+}
+
+/**
+ * Panel failing to render.
+ */
+class BrokenTestPanel extends DebugPanel
+{
+    /**
+     * @var string
+     */
+    public $elementName = 'broken_test_panel';
+
+    /**
+     * @param mixed $content The content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        throw new RuntimeException('summary failed');
     }
 }
 
@@ -119,7 +152,7 @@ class ToolbarComponentTest extends CakeTestCase
     {
         $request = new CakeRequest($this->url);
         $request->addParams(Router::parse($this->url));
-        $this->Controller = new Controller($request);
+        $this->Controller = new Controller($request, new CakeResponse());
         $this->Controller->uses = null;
         $this->Controller->components = ['Toolbar' => $settings + ['className' => 'TestToolbar']];
         $this->Controller->constructClasses();
@@ -502,8 +535,7 @@ class ToolbarComponentTest extends CakeTestCase
     }
 
     /**
-     * Test that history state urls set prefix = null and admin = null so generated urls do not
-     * adopt these params.
+     * Test that the history panel links do not adopt the prefix of the current request.
      *
      * @return void
      */
@@ -518,20 +550,20 @@ class ToolbarComponentTest extends CakeTestCase
             'plugin' => 'cms',
         ]);
         $this->_loadController();
-        $this->Controller->Toolbar->cacheKey = 'url_test';
         $this->Controller->Components->trigger('startup', [$this->Controller]);
         $this->Controller->Components->trigger('beforeRender', [$this->Controller]);
 
         $result = $this->Controller->Toolbar->panels['history']->beforeRender($this->Controller);
-        $expected = [
-            'plugin' => 'DebugKit',
-            'controller' => 'ToolbarAccess',
-            'action' => 'history_state',
-            0 => 1,
-            'admin' => false,
-        ];
-        $this->assertEquals($result[0]['url'], $expected);
-        Cache::delete('url_test', 'debug_kit');
+        $this->assertSame($this->Controller->Toolbar->requestId, $result['current']['id']);
+
+        Router::setRequestInfo($this->Controller->request);
+        $view = new View($this->Controller);
+        $html = $view->element('history_panel', ['content' => $result], ['plugin' => 'DebugKit']);
+        $this->assertStringContainsString(
+            '/debug_kit/panels/index/' . $this->Controller->Toolbar->requestId,
+            $html,
+        );
+        $this->assertStringNotContainsString('/admin/', $html);
     }
 
     /**
@@ -577,5 +609,256 @@ class ToolbarComponentTest extends CakeTestCase
 
         $result = $this->Controller->requestAction('/debug_kit_test/request_action_render', ['return']);
         $this->assertEquals($result, 'I have been rendered.');
+    }
+
+    /**
+     * Get the toolbar storage, emptied.
+     *
+     * @return DebugKitDatabaseStorage
+     */
+    protected function _storage(): DebugKitDatabaseStorage
+    {
+        DebugKitStorage::reset();
+        $storage = DebugKitStorage::get([]);
+        $storage->Panel->deleteAll(['1 = 1'], false, false);
+        $storage->Request->deleteAll(['1 = 1'], false, false);
+
+        return $storage;
+    }
+
+    /**
+     * Render the current controller with a layout.
+     *
+     * @return void
+     */
+    protected function _render(): void
+    {
+        $debugKitPath = CakePlugin::path('DebugKit');
+        App::build([
+            'View' => [
+                $debugKitPath . 'tests' . DS . 'test_app' . DS . 'View' . DS,
+                CAKE_CORE_INCLUDE_PATH . DS . 'Cake' . DS . 'Test' . DS . 'test_app' . DS . 'View' . DS,
+            ],
+        ]);
+        $this->Controller->Components->trigger('startup', [$this->Controller]);
+        $this->Controller->viewPath = 'DebugKitTest';
+        $this->Controller->layout = 'default';
+        $this->Controller->render('request_action_render');
+    }
+
+    /**
+     * Test recording a request and injecting the toolbar on shutdown.
+     *
+     * @return void
+     */
+    public function testShutdownRecordsAndInjects(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $storage = $this->_storage();
+        $this->_loadController();
+        $this->Controller->set('test', 'testing');
+        $this->_render();
+        $this->Controller->Components->trigger('shutdown', [$this->Controller]);
+
+        $id = $this->Controller->Toolbar->requestId;
+        $this->assertSame($id, $this->Controller->response->header()['X-DEBUGKIT-ID']);
+        $body = $this->Controller->response->body();
+        $this->assertMatchesRegularExpression('#<script id="__debug_kit_script" data-id="' . $id . '"[^>]+></script>\s*</body>#', $body);
+        $this->assertStringContainsString('debug_kit/requests/view/' . $id, $body);
+
+        $request = $storage->read($id);
+        $this->assertSame('GET', $request['method']);
+        $this->assertSame(200, $request['status_code']);
+        $this->assertSame('text/html', $request['content_type']);
+        $this->assertSame(
+            ['history', 'session', 'request', 'sql_log', 'timer', 'log', 'variables', 'environment', 'include'],
+            array_column($request['panels'], 'panel'),
+        );
+        $this->assertSame('Sql Log', $request['panels'][3]['title']);
+        $this->assertSame('0 xhr', $request['panels'][0]['summary']);
+
+        $variables = $storage->panel($id, 'variables');
+        $this->assertStringContainsString('testing', $variables['content']);
+        $this->assertStringContainsString('neat-array', $variables['content']);
+        // Rendered with the view of the request, which has the DebugTimer helper loaded.
+        $this->assertStringContainsString('DebugTimer', $variables['content']);
+        $timer = $storage->panel($id, 'timer');
+        $this->assertStringContainsString('debug-kit-graph-bar', $timer['content']);
+
+        // Recorded only once.
+        $this->assertFalse($this->Controller->Toolbar->record($this->Controller));
+    }
+
+    /**
+     * Test that the history panel lists the previous requests.
+     *
+     * @return void
+     */
+    public function testHistoryListsPreviousRequests(): void
+    {
+        $storage = $this->_storage();
+        $this->_loadController(['panels' => ['history']]);
+        $this->Controller->Toolbar->beforeRedirect($this->Controller, '/', 301);
+        $first = $this->Controller->Toolbar->requestId;
+        $this->assertSame(301, $storage->read($first)['status_code']);
+        $this->tearDown();
+        $this->setUp();
+
+        $this->_loadController(['panels' => ['history']]);
+        $this->Controller->Components->trigger('beforeRender', [$this->Controller]);
+        $this->Controller->Toolbar->record($this->Controller);
+        $panel = $storage->panel($this->Controller->Toolbar->requestId, 'history');
+        $this->assertStringContainsString('data-request="' . $first . '"', $panel['content']);
+        $this->assertStringContainsString('data-request="' . $this->Controller->Toolbar->requestId . '"', $panel['content']);
+    }
+
+    /**
+     * Test that the toolbar is not injected into non HTML responses.
+     *
+     * @return void
+     */
+    public function testNoInjectionForNonHtml(): void
+    {
+        $this->_storage();
+        $this->_loadController();
+        $this->Controller->response->type('json');
+        $this->Controller->response->body('{"html": "</body>"}');
+        $this->Controller->Components->trigger('shutdown', [$this->Controller]);
+
+        $this->assertSame('{"html": "</body>"}', $this->Controller->response->body());
+        $this->assertArrayHasKey('X-DEBUGKIT-ID', $this->Controller->response->header());
+    }
+
+    /**
+     * Test that the toolbar is not injected into ajax responses.
+     *
+     * @return void
+     */
+    public function testNoInjectionForAjax(): void
+    {
+        $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
+        $this->_storage();
+        $this->_loadController();
+        $this->Controller->response->body('<html><body></body></html>');
+        $this->Controller->Components->trigger('shutdown', [$this->Controller]);
+
+        $this->assertSame('<html><body></body></html>', $this->Controller->response->body());
+        $this->assertArrayHasKey('X-DEBUGKIT-ID', $this->Controller->response->header());
+    }
+
+    /**
+     * Test injection edge cases.
+     *
+     * @return void
+     */
+    public function testInjectToolbarEdgeCases(): void
+    {
+        $this->_loadController();
+        $toolbar = $this->Controller->Toolbar;
+
+        $this->Controller->response->body('<p>no body tag</p>');
+        $this->assertFalse($toolbar->injectToolbar($this->Controller));
+
+        $this->Controller->response->body(null);
+        $this->assertFalse($toolbar->injectToolbar($this->Controller));
+
+        $this->Controller->request->params['ext'] = 'xml';
+        $this->Controller->response->body('<body></body>');
+        $this->assertFalse($toolbar->injectToolbar($this->Controller));
+
+        $this->Controller->request->params['ext'] = 'html';
+        $this->assertTrue($toolbar->injectToolbar($this->Controller));
+    }
+
+    /**
+     * Test that requestAction and DebugKit requests are not recorded.
+     *
+     * @return void
+     */
+    public function testRecordSkipped(): void
+    {
+        $this->_storage();
+        $this->_loadController();
+        $this->Controller->request->params['requested'] = 1;
+        $this->assertFalse($this->Controller->Toolbar->record($this->Controller));
+
+        $this->_loadController();
+        $this->Controller->request->params['plugin'] = 'debug_kit';
+        $this->assertFalse($this->Controller->Toolbar->record($this->Controller));
+
+        $this->_loadController();
+        $this->Controller->Toolbar->enabled = false;
+        $this->assertFalse($this->Controller->Toolbar->record($this->Controller));
+    }
+
+    /**
+     * Test recording without a storage.
+     *
+     * @return void
+     */
+    public function testRecordWithoutStorage(): void
+    {
+        $this->_loadController();
+        $this->Controller->Toolbar->setStorage(false);
+        $this->assertNull($this->Controller->Toolbar->storage());
+        $this->Controller->response->body('<body></body>');
+        $this->Controller->Components->trigger('shutdown', [$this->Controller]);
+
+        $this->assertSame('<body></body>', $this->Controller->response->body());
+        $this->assertArrayNotHasKey('X-DEBUGKIT-ID', $this->Controller->response->header());
+    }
+
+    /**
+     * Test recording when the storage fails.
+     *
+     * @return void
+     */
+    public function testRecordStorageFailure(): void
+    {
+        $this->_loadController(['panels' => ['history' => false]]);
+        $storage = $this->getMockBuilder(DebugKitStorageInterface::class)->getMock();
+        $storage->expects($this->once())->method('save')->willReturn(false);
+        $storage->expects($this->never())->method('prune');
+        $this->Controller->Toolbar->setStorage($storage);
+
+        $this->assertFalse($this->Controller->Toolbar->record($this->Controller));
+    }
+
+    /**
+     * Test that panel errors do not break the recording.
+     *
+     * @return void
+     */
+    public function testRecordPanelErrors(): void
+    {
+        $storage = $this->_storage();
+        $this->_loadController(['panels' => ['history' => false]]);
+        $this->Controller->Toolbar->panels = ['broken_test' => new BrokenTestPanel()];
+        $this->Controller->Toolbar->record($this->Controller);
+
+        $panel = $storage->panel($this->Controller->Toolbar->requestId, 'broken_test');
+        $this->assertSame('', $panel['summary']);
+        $this->assertStringContainsString('Could not render the panel', $panel['content']);
+    }
+
+    /**
+     * Test that the panels are rendered with a separate view for non HTML toolbars.
+     *
+     * @return void
+     */
+    public function testRecordUsesSeparateViewForAjax(): void
+    {
+        $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
+        $storage = $this->_storage();
+        $this->_loadController();
+        $this->Controller->set('test', 'testing');
+        $this->_render();
+        $this->assertSame('FirePhpToolbar', $this->Controller->View->Toolbar->getName());
+        $this->Controller->Toolbar->record($this->Controller);
+
+        $panel = $storage->panel($this->Controller->Toolbar->requestId, 'request');
+        $this->assertStringContainsString('neat-array', $panel['content']);
+        $variables = $storage->panel($this->Controller->Toolbar->requestId, 'variables');
+        $this->assertStringNotContainsString('DebugTimer', $variables['content']);
     }
 }

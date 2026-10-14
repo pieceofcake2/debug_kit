@@ -59,4 +59,19 @@ class LogPanelTest extends CakeTestCase
         $this->assertTrue(isset($result->logs));
         $this->assertCount(1, $result->logs['error']);
     }
+
+    /**
+     * Test the summary.
+     *
+     * @return void
+     */
+    public function testSummary(): void
+    {
+        $this->assertSame('0', $this->panel->summary(null));
+        $log = new DebugKitLog(['panel' => $this->panel]);
+        $log->write('error', 'one');
+        $log->write('debug', 'two');
+        $log->write('debug', 'three');
+        $this->assertSame('3', $this->panel->summary($log));
+    }
 }

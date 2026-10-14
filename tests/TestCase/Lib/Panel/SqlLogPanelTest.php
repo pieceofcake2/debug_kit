@@ -56,4 +56,26 @@ class SqlLogPanelTest extends CakeTestCase
         $this->assertTrue(isset($result['connections'][$Article->useDbConfig]));
         $this->assertTrue(isset($result['threshold']));
     }
+
+    /**
+     * Test the summary and that the toolbar storage connection is not listed.
+     *
+     * @return void
+     */
+    public function testSummary(): void
+    {
+        $Article = ClassRegistry::init('Article');
+        $db = $Article->getDataSource();
+        $db->fullDebug = true;
+        $Article->find('first');
+
+        $result = $this->panel->beforeRender(new Controller());
+        $this->assertArrayNotHasKey('debug_kit', $result['connections']);
+        $this->assertMatchesRegularExpression('#^\d+ / \d+ ms$#', $this->panel->summary($result));
+        $this->assertSame('0', $this->panel->summary([]));
+        $this->assertSame('0', $this->panel->summary(['connections' => ['debug_kit' => false]]));
+
+        $panel = new SqlLogPanel(['connection' => 'other']);
+        $this->assertSame('other', $panel->storageConnection);
+    }
 }

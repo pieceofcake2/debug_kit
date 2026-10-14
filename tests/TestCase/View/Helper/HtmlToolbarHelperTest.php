@@ -332,13 +332,18 @@ class HtmlToolbarHelperTest extends CakeTestCase
         $this->Controller->constructClasses();
         $this->Controller->Components->trigger('startup', [$this->Controller]);
         $this->Controller->Components->trigger('beforeRender', [$this->Controller]);
-        $result = $this->Controller->render();
-        $result = str_replace(["\n", "\r"], '', $result);
-        $this->assertMatchesRegularExpression('#<div id\="debug-kit-toolbar">.+</div>.*</body>#', $result);
+        $this->Controller->render();
+        $this->Controller->Components->trigger('shutdown', [$this->Controller]);
+        $result = str_replace(["\n", "\r"], '', $this->Controller->response->body());
+        $this->assertMatchesRegularExpression(
+            '#<script id="__debug_kit_script" data-id="[0-9a-f-]{36}" [^>]*' .
+            'src="/debug_kit/js/inject-iframe.js(?:\?\d+)?"></script></body>#',
+            $result,
+        );
     }
 
     /**
-     * test injection of javascript
+     * Test that the toolbar assets are not injected into the page, the toolbar loads them in its iframe.
      *
      * @return void
      */
@@ -362,7 +367,9 @@ class HtmlToolbarHelperTest extends CakeTestCase
         $this->Controller->Components->trigger('beforeRender', [$this->Controller]);
         $result = $this->Controller->render();
         $result = str_replace(["\n", "\r"], '', $result);
-        $this->assertMatchesRegularExpression('#<script\s*type="text/javascript"\s*src="/debug_kit/js/js_debug_toolbar.js(?:\?\d*?)?"\s*>\s?</script>#', $result);
+        $this->assertStringNotContainsString('debug_kit/js', $result);
+        $this->assertStringNotContainsString('debug_kit/css', $result);
+        $this->assertStringNotContainsString('debug-kit-toolbar', $result);
     }
 
     /**
