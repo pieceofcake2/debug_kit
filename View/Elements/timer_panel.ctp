@@ -18,7 +18,7 @@ $this->Number = $this->Helpers->load('Number');
 $this->SimpleGraph = $this->Helpers->load('DebugKit.SimpleGraph');
 
 if (!isset($debugKitInHistoryMode)):
-	$timers = DebugTimer::getAll(true);
+	$timers = DebugTimer::getAll();
 	$currentMemory = DebugMemory::getCurrent();
 	$peakMemory = DebugMemory::getPeak();
 	$requestTime = DebugTimer::requestTime();

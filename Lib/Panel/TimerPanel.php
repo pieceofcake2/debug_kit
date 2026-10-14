@@ -12,6 +12,9 @@
  */
 
 App::uses('DebugPanel', 'DebugKit.Lib');
+App::uses('DebugTimer', 'DebugKit.Lib');
+App::uses('DebugMemory', 'DebugKit.Lib');
+App::uses('CakeNumber', 'Utility');
 
 /**
  * Provides debug information on all timers used in a request.
@@ -32,5 +35,19 @@ class TimerPanel extends DebugPanel
         if (!in_array('SimpleGraph', array_keys(HelperCollection::normalizeObjectArray($controller->helpers)))) {
             $controller->helpers[] = 'DebugKit.SimpleGraph';
         }
+    }
+
+    /**
+     * Get the summary: request time and peak memory use.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        $time = CakeNumber::precision(DebugTimer::requestTime(), 2) . ' s';
+        $memory = CakeNumber::toReadableSize(DebugMemory::getPeak());
+
+        return "$time / $memory";
     }
 }

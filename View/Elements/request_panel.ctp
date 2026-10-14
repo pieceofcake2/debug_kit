@@ -14,8 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 ?>
-<h2> <?php echo __d('debug_kit', 'Request'); ?></h2>
-
 <h4>Cake Params</h4>
 <?php echo $this->Toolbar->makeNeatArray($content['params']); ?>
 

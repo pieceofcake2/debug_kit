@@ -19,7 +19,6 @@ if (isset($debugKitInHistoryMode)) {
 	$content = $this->Toolbar->readCache('sql_log', $this->request->params['pass'][0]);
 }
 ?>
-<h2><?php echo __d('debug_kit', 'Sql Logs')?></h2>
 <?php if (!empty($content)) : ?>
 	<?php foreach ($content['connections'] as $dbName => $explain): ?>
 	<div class="sql-log-panel-query-log">

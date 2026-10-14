@@ -15,6 +15,9 @@
 
 App::uses('DebugTimer', 'DebugKit.Lib');
 App::uses('DebugMemory', 'DebugKit.Lib');
+App::uses('DebugKitStorage', 'DebugKit.Lib/Storage');
+App::uses('CakeText', 'Utility');
+App::uses('View', 'View');
 
 /**
  * Class ToolbarComponent
@@ -29,6 +32,12 @@ class ToolbarComponent extends Component implements CakeEventListener
      * - forceEnable - Force the toolbar to display even if debug == 0. Default = false
      * - autoRun - Automatically display the toolbar. If set to false, toolbar display can be triggered by adding
      *    `?debug=true` to your URL.
+     * - history - Number of previous requests listed by the History panel.
+     * - requestCount - Number of requests kept in the toolbar storage. Default = 20
+     * - storage - `auto` (default), `database` or `cache`. See DebugKitStorage.
+     * - connection - Connection name used by the database storage. Default = `debug_kit`
+     * - database - SQLite file used when the `debug_kit` connection is created. Default = `TMP/debug_kit.sqlite`
+     * - cache - Cache configuration used by the legacy toolbar state and the cache storage.
      *
      * @var array
      */
@@ -77,20 +86,21 @@ class ToolbarComponent extends Component implements CakeEventListener
     public $panels = [];
 
     /**
-     * javascript files component will be using
+     * Additional javascript files loaded into the toolbar, merged with the javascript files of the panels.
+     *
+     * The toolbar itself is rendered by the DebugKit.Requests controller inside an iframe and
+     * loads its own assets.
      *
      * @var array
      */
-    public $javascript = [
-        'libs' => 'DebugKit./js/js_debug_toolbar',
-    ];
+    public $javascript = [];
 
     /**
-     * CSS files component will be using
+     * Additional CSS files loaded into the toolbar, merged with the CSS files of the panels.
      *
      * @var array
      */
-    public $css = ['DebugKit./css/debug_toolbar.css'];
+    public $css = [];
 
     /**
      * CacheKey used for the cache file.
@@ -112,6 +122,41 @@ class ToolbarComponent extends Component implements CakeEventListener
      * @var bool
      */
     public $enabled = true;
+
+    /**
+     * Id of the current request in the toolbar storage.
+     *
+     * @var string|null
+     */
+    public $requestId = null;
+
+    /**
+     * Panel variables gathered for the current request.
+     *
+     * @var array|null
+     */
+    protected $_panelVars = null;
+
+    /**
+     * The view rendering the current request, if any.
+     *
+     * @var View|null
+     */
+    protected $_view = null;
+
+    /**
+     * Whether the current request has been recorded.
+     *
+     * @var bool
+     */
+    protected $_recorded = false;
+
+    /**
+     * The resolved toolbar storage, false when none is available.
+     *
+     * @var DebugKitStorageInterface|false|null
+     */
+    protected $_storage = null;
 
     /**
      * Constructor
@@ -153,6 +198,7 @@ class ToolbarComponent extends Component implements CakeEventListener
         }
 
         $this->controller->getEventManager()->attach($this);
+        $this->requestId = CakeText::uuid();
 
         DebugMemory::record(__d('debug_kit', 'Component initialization'));
 
@@ -200,6 +246,12 @@ class ToolbarComponent extends Component implements CakeEventListener
             ],
             'View.beforeRender' => [
                 ['priority' => 0, 'callable' => $before('Event: View.beforeRender')],
+                ['priority' => 0, 'callable' => function (CakeEvent $event) {
+                    $view = $event->subject();
+                    if ($view instanceof View) {
+                        $this->_view = $view;
+                    }
+                }],
                 ['priority' => 999, 'callable' => $after('Event: View.beforeRender')],
             ],
             'View.afterRender' => [
@@ -304,6 +356,8 @@ class ToolbarComponent extends Component implements CakeEventListener
         );
         $vars = $this->_gatherVars($controller);
         $this->_saveState($controller, $vars);
+        $this->_setPanelVars($vars);
+        $this->record($controller, is_numeric($status) ? (int)$status : 302);
         DebugTimer::stop('processToolbar');
 
         return null;
@@ -330,10 +384,7 @@ class ToolbarComponent extends Component implements CakeEventListener
         );
         $vars = $this->_gatherVars($controller);
         $this->_saveState($controller, $vars);
-
-        $this->javascript = array_unique(array_merge($this->javascript, $vars['javascript']));
-        $this->css = array_unique(array_merge($this->css, $vars['css']));
-        unset($vars['javascript'], $vars['css']);
+        $vars = $this->_setPanelVars($vars);
 
         $controller->set([
             'debugToolbarPanels' => $vars,
@@ -365,10 +416,314 @@ class ToolbarComponent extends Component implements CakeEventListener
     }
 
     /**
+     * Shutdown callback
+     *
+     * Records the request in the toolbar storage and injects the toolbar loader script into
+     * HTML responses.
+     *
+     * @param Controller $controller The controller.
+     * @return void
+     */
+    public function shutdown(Controller $controller)
+    {
+        if ($this->record($controller)) {
+            $this->injectToolbar($controller);
+        }
+    }
+
+    /**
+     * Get the toolbar storage.
+     *
+     * @return DebugKitStorageInterface|null The storage, or null when none is available.
+     */
+    public function storage()
+    {
+        if ($this->_storage === null) {
+            $this->_storage = DebugKitStorage::get($this->settings) ?: false;
+        }
+
+        return $this->_storage ?: null;
+    }
+
+    /**
+     * Render the panels of the current request and save them in the toolbar storage.
+     *
+     * Requests are recorded once. `requestAction()` requests and requests to the DebugKit
+     * plugin are not recorded. On success the `X-DEBUGKIT-ID` header is set on the response.
+     *
+     * @param Controller $controller The controller.
+     * @param int|null $statusCode The response status code, defaults to the status of the response.
+     * @return bool Whether the request has been recorded.
+     */
+    public function record(Controller $controller, $statusCode = null)
+    {
+        if ($this->_recorded || !$this->_shouldRecord($controller)) {
+            return false;
+        }
+        $this->_recorded = true;
+
+        $storage = $this->storage();
+        if (!$storage) {
+            return false;
+        }
+        if ($this->_panelVars === null) {
+            $this->_setPanelVars($this->_gatherVars($controller));
+        }
+
+        $view = $this->_panelView($controller);
+        $panels = [];
+        foreach ($this->panels as $name => $panel) {
+            if (!isset($this->_panelVars[$name])) {
+                continue;
+            }
+            $info = $this->_panelVars[$name];
+            $title = empty($info['title']) ? Inflector::humanize($name) : $info['title'];
+            $panels[] = [
+                'panel' => $name,
+                'title' => $title,
+                'element' => $info['elementName'],
+                'summary' => $this->_panelSummary($panel, $info['content']),
+                'content' => $this->_renderPanel($view, $info),
+            ];
+        }
+
+        $request = $controller->request;
+        $requestTime = (float)env('REQUEST_TIME_FLOAT') ?: microtime(true);
+        $data = [
+            'id' => $this->requestId,
+            'url' => $request->here(),
+            'method' => $request->method(),
+            'status_code' => $statusCode ?: $controller->response->statusCode(),
+            'content_type' => $controller->response->type(),
+            'requested_at' => date('Y-m-d H:i:s', (int)$requestTime) .
+                sprintf('.%06d', ($requestTime - floor($requestTime)) * 1000000),
+            'assets' => [
+                'css' => array_values(array_filter($this->css)),
+                'javascript' => array_values(array_filter($this->javascript)),
+            ],
+        ];
+        if (!$storage->save($data, $panels)) {
+            return false;
+        }
+        $storage->prune(max(DebugKitStorage::requestCount($this->settings), $this->_historyCount() + 1));
+        $controller->response->header('X-DEBUGKIT-ID', $this->requestId);
+
+        return true;
+    }
+
+    /**
+     * Inject the toolbar loader script before the closing body tag of HTML responses.
+     *
+     * Ajax, requestAction and non HTML responses are left untouched.
+     *
+     * @param Controller $controller The controller.
+     * @return bool Whether the script has been injected.
+     */
+    public function injectToolbar(Controller $controller)
+    {
+        $request = $controller->request;
+        $response = $controller->response;
+        if (
+            $request->is('ajax') ||
+            $request->is('requested') ||
+            (!empty($request->params['ext']) && $request->params['ext'] !== 'html') ||
+            $response->type() !== 'text/html'
+        ) {
+            return false;
+        }
+        // The body is null when nothing has been rendered.
+        $body = (string)$response->body();
+        $pos = strripos($body, '</body>');
+        if ($pos === false) {
+            return false;
+        }
+        $script = sprintf(
+            '<script id="__debug_kit_script" data-id="%s" data-url="%s" data-toolbar-url="%s" type="module" src="%s"></script>',
+            h($this->requestId),
+            h(Router::url('/', true)),
+            h($this->toolbarUrl()),
+            h($this->_assetUrl($request, 'js/inject-iframe.js')),
+        );
+        $response->body(substr($body, 0, $pos) . $script . substr($body, $pos));
+
+        return true;
+    }
+
+    /**
+     * Get the URL of the toolbar of the current request.
+     *
+     * @return string
+     */
+    public function toolbarUrl()
+    {
+        $url = ['plugin' => 'debug_kit', 'controller' => 'requests', 'action' => 'view', $this->requestId];
+        foreach (Router::prefixes() as $prefix) {
+            $url[$prefix] = false;
+        }
+
+        return Router::url($url);
+    }
+
+    /**
+     * Set the gathered panel variables of the current request.
+     *
+     * The javascript and CSS files of the panels are merged into the `javascript` and `css` properties.
+     *
+     * @param array $vars The gathered variables.
+     * @return array The panel variables.
+     */
+    protected function _setPanelVars(array $vars)
+    {
+        $this->javascript = array_unique(array_merge($this->javascript, $vars['javascript']));
+        $this->css = array_unique(array_merge($this->css, $vars['css']));
+        unset($vars['javascript'], $vars['css']);
+        $this->_panelVars = $vars;
+
+        return $vars;
+    }
+
+    /**
+     * Check whether the current request should be recorded.
+     *
+     * @param Controller $controller The controller.
+     * @return bool
+     */
+    protected function _shouldRecord(Controller $controller)
+    {
+        $request = $controller->request;
+        if (
+            !$this->enabled ||
+            $this->requestId === null ||
+            $request->is('requested')
+        ) {
+            return false;
+        }
+        $plugin = $request->params['plugin'] ?? null;
+
+        return !$plugin || Inflector::camelize((string)$plugin) !== 'DebugKit';
+    }
+
+    /**
+     * Get the number of requests listed by the history panel.
+     *
+     * @return int
+     */
+    protected function _historyCount()
+    {
+        if (isset($this->panels['history']->history)) {
+            return (int)$this->panels['history']->history;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get the view used to render the panels.
+     *
+     * The view of the current request is used when it renders with the HTML toolbar so that
+     * panels can introspect it. Otherwise a separate view is created.
+     *
+     * @param Controller $controller The controller.
+     * @return View
+     */
+    protected function _panelView(Controller $controller)
+    {
+        $view = $this->_view;
+        if ($view !== null && $view->Helpers->loaded('Toolbar')) {
+            $toolbar = $view->Helpers->load('Toolbar');
+            if ($toolbar instanceof ToolbarHelper && $toolbar->getName() === 'HtmlToolbar') {
+                return $view;
+            }
+        }
+
+        $view = new View(null);
+        $view->request = $controller->request;
+        $view->response = $controller->response;
+        $view->viewVars = $controller->viewVars;
+        $view->helpers = [
+            'Html',
+            'Form',
+            'Number',
+            'DebugKit.SimpleGraph',
+            'DebugKit.Toolbar' => [
+                'output' => 'DebugKit.HtmlToolbar',
+                'cacheKey' => $this->cacheKey,
+                'cacheConfig' => 'debug_kit',
+                'forceEnable' => $this->settings['forceEnable'],
+            ],
+        ];
+        $view->loadHelpers();
+
+        return $view;
+    }
+
+    /**
+     * Render the element of a panel.
+     *
+     * @param View $view The view.
+     * @param array $info The panel variables.
+     * @return string The rendered panel.
+     */
+    protected function _renderPanel(View $view, array $info)
+    {
+        $level = ob_get_level();
+        try {
+            return (string)$view->element($info['elementName'], $info, [
+                'plugin' => empty($info['plugin']) ? null : Inflector::camelize($info['plugin']),
+            ]);
+        } catch (Throwable $e) {
+            while (ob_get_level() > $level) {
+                ob_end_clean();
+            }
+
+            return sprintf(
+                '<p class="c-flash c-flash--warning">%s</p>',
+                h(__d('debug_kit', 'Could not render the panel: %s', $e->getMessage())),
+            );
+        }
+    }
+
+    /**
+     * Get the summary of a panel.
+     *
+     * @param DebugPanel $panel The panel.
+     * @param mixed $content The content returned by the panel's beforeRender().
+     * @return string
+     */
+    protected function _panelSummary(DebugPanel $panel, $content)
+    {
+        try {
+            return (string)$panel->summary($content);
+        } catch (Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Get the URL of a DebugKit asset.
+     *
+     * @param CakeRequest $request The request.
+     * @param string $path The path in the plugin webroot.
+     * @return string
+     */
+    protected function _assetUrl(CakeRequest $request, $path)
+    {
+        $url = $request->webroot . 'debug_kit/' . $path;
+        $file = CakePlugin::path('DebugKit') . 'webroot' . DS . str_replace('/', DS, $path);
+        if (is_file($file)) {
+            $url .= '?' . filemtime($file);
+        }
+
+        return $url;
+    }
+
+    /**
      * Load a toolbar state from cache
      *
      * @param string|int $key The key.
      * @return array The toolbar state.
+     * @deprecated 2.3.0 The toolbar history is kept in the toolbar storage, see storage().
+     *   The legacy cache based state is still written for backwards compatibility.
      */
     public function loadState($key)
     {
@@ -461,6 +816,9 @@ class ToolbarComponent extends Component implements CakeEventListener
 
     /**
      * Save the current state of the toolbar varibles to the cache file.
+     *
+     * This legacy state is used by ToolbarComponent::loadState(), ToolbarHelper::readCache() and
+     * ToolbarAccessController::history_state(). The toolbar itself uses the toolbar storage.
      *
      * @param Controller $controller Controller instance
      * @param array $vars Vars to save.

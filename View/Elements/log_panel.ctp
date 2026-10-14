@@ -14,7 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 ?>
-<h2><?php echo __d('debug_kit', 'Logs') ?></h2>
 <div class="code-table">
 <?php if ($content instanceof DebugKitLog): ?>
 	<?php foreach ($content->logs as $logName => $logs): ?>
