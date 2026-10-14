@@ -22,8 +22,11 @@ CakePlugin::load('DebugKit', [
 ]);
 
 // Keep the toolbar storage of the test run in memory.
-App::uses('ConnectionManager', 'Model');
-ConnectionManager::create('debug_kit', [
-    'datasource' => 'Database/Sqlite',
-    'database' => ':memory:',
-]);
+// The database configuration is not available for static analysis.
+if (is_file(CONFIG . 'database.php')) {
+    App::uses('ConnectionManager', 'Model');
+    ConnectionManager::create('debug_kit', [
+        'datasource' => 'Database/Sqlite',
+        'database' => ':memory:',
+    ]);
+}
