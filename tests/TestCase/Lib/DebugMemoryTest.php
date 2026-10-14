@@ -61,4 +61,14 @@ class DebugMemoryTest extends CakeTestCase
         $this->assertTrue(isset($result['test marker']));
         $this->assertTrue(isset($result['test marker #2']));
     }
+
+    /**
+     * Fails on purpose to show the job summary (throwaway branch).
+     *
+     * @return void
+     */
+    public function testSummaryDemoFailure(): void
+    {
+        $this->assertSame(['peak' => 1, 'unit' => 'MB'], ['peak' => 2, 'unit' => 'MB'], 'Memory | peak differs');
+    }
 }

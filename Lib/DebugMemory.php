@@ -97,4 +97,16 @@ class DebugMemory
     {
         self::$_points = [];
     }
+
+    /**
+     * Breaks phpcs and PHPStan on purpose to show the job summary (throwaway branch).
+     *
+     * @return mixed
+     */
+    public static function summaryDemo()
+    {
+        $value=1;
+
+        return self::undefinedSummaryDemo($value);
+    }
 }
