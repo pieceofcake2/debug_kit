@@ -201,10 +201,30 @@ class DebugKitDatabaseStorage implements DebugKitStorageInterface
             return;
         }
         $schema = new CakeSchema(['name' => 'DebugKit']);
-        $schema->tables = static::$schema;
+        $schema->tables = static::tableSchema($db);
         foreach ($missing as $table) {
             $db->execute($db->createSchema($schema, $table));
         }
+    }
+
+    /**
+     * Get the schema of the storage tables for a datasource.
+     *
+     * A TEXT column holds at most 64 KB on MySQL, which rendered panels can exceed. Giving the
+     * column a length makes MySQL use the smallest text type that fits, LONGTEXT here. Other
+     * databases have no such limit, and PostgreSQL and SQL Server do not accept a length.
+     *
+     * @param DboSource $db The datasource.
+     * @return array
+     */
+    public static function tableSchema(DboSource $db)
+    {
+        $tables = static::$schema;
+        if ($db instanceof Mysql) {
+            $tables['panels']['content']['length'] = 4294967295;
+        }
+
+        return $tables;
     }
 
     /**

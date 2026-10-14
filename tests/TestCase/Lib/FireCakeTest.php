@@ -211,6 +211,69 @@ class FireCakeTest extends CakeTestCase
     }
 
     /**
+     * Test that maxObjectDepth limits nested objects
+     *
+     * @return void
+     */
+    public function testStringEncodeMaxObjectDepth(): void
+    {
+        $this->firecake->setOptions(['maxObjectDepth' => 3, 'maxArrayDepth' => 20]);
+
+        $deep = new stdClass();
+        $deep->child = new stdClass();
+        $deep->child->child = new stdClass();
+        $deep->child->child->child = new stdClass();
+
+        $result = $this->firecake->stringEncode($deep);
+        $expected = [
+            '__className' => 'stdClass',
+            'child' => [
+                '__className' => 'stdClass',
+                'child' => '** Max Object Depth (3) **',
+            ],
+        ];
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Test that object and array depths are tracked separately
+     *
+     * @return void
+     */
+    public function testStringEncodeMixedDepth(): void
+    {
+        $this->firecake->setOptions(['maxObjectDepth' => 3, 'maxArrayDepth' => 3]);
+
+        $object = new stdClass();
+        $object->list = [1 => ['a', 'b']];
+        $result = $this->firecake->stringEncode($object);
+        $this->assertEquals(['__className' => 'stdClass', 'list' => [1 => ['a', 'b']]], $result);
+
+        $inner = new stdClass();
+        $inner->value = 'x';
+        $outer = new stdClass();
+        $outer->items = [[$inner]];
+        $result = $this->firecake->stringEncode($outer);
+        $expected = [
+            '__className' => 'stdClass',
+            'items' => [[['__className' => 'stdClass', 'value' => 'x']]],
+        ];
+        $this->assertEquals($expected, $result);
+
+        $wrapper = new stdClass();
+        $wrapper->inner = $outer;
+        $result = $this->firecake->stringEncode($wrapper);
+        $expected = [
+            '__className' => 'stdClass',
+            'inner' => [
+                '__className' => 'stdClass',
+                'items' => [['** Max Object Depth (3) **']],
+            ],
+        ];
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
      * Test trace()
      *
      * @return void

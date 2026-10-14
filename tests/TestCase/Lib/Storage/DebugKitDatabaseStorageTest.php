@@ -13,6 +13,8 @@
  */
 
 App::uses('DebugKitDatabaseStorage', 'DebugKit.Lib/Storage');
+App::uses('Mysql', 'Model/Datasource/Database');
+App::uses('Sqlite', 'Model/Datasource/Database');
 
 /**
  * DebugKitDatabaseStorageTest
@@ -109,6 +111,53 @@ class DebugKitDatabaseStorageTest extends CakeTestCase
 
         $this->assertFalse($this->storage->save($this->_request('22222222-2222-4222-8222-222222222222'), $panels));
         $this->assertNull($this->storage->read('22222222-2222-4222-8222-222222222222'));
+    }
+
+    /**
+     * Test that the panel content column is large enough on MySQL.
+     *
+     * @return void
+     */
+    public function testTableSchema(): void
+    {
+        $mysql = $this->getMockBuilder('Mysql')->disableOriginalConstructor()->getMock();
+        $tables = DebugKitDatabaseStorage::tableSchema($mysql);
+        $this->assertSame(4294967295, $tables['panels']['content']['length']);
+        $this->assertStringContainsString('`content` text(4294967295)', (new Mysql([], false))->buildColumn(['name' => 'content'] + $tables['panels']['content']));
+
+        $sqlite = $this->getMockBuilder('Sqlite')->disableOriginalConstructor()->getMock();
+        $this->assertSame(DebugKitDatabaseStorage::$schema, DebugKitDatabaseStorage::tableSchema($sqlite));
+    }
+
+    /**
+     * Test that panels larger than 64 KB are stored in the test database.
+     *
+     * @return void
+     */
+    public function testSaveLargePanel(): void
+    {
+        $config = ConnectionManager::getDataSource('test')->config;
+        $config['prefix'] = ($config['prefix'] ?? '') . 'debug_kit_large_';
+        ConnectionManager::create('debug_kit_large_test', $config);
+        $db = ConnectionManager::getDataSource('debug_kit_large_test');
+        try {
+            $storage = new DebugKitDatabaseStorage('debug_kit_large_test');
+            $id = '33333333-3333-4333-8333-333333333333';
+            $content = str_repeat('<p>large panel</p>', 10000);
+            $this->assertGreaterThan(65535, strlen($content));
+            $panels = [['panel' => 'large', 'title' => 'Large', 'element' => 'large_panel', 'content' => $content]];
+
+            $this->assertTrue($storage->save($this->_request($id), $panels));
+            $this->assertSame($content, $storage->panel($id, 'large')['content']);
+        } finally {
+            foreach (['panels', 'requests'] as $table) {
+                if (in_array($config['prefix'] . $table, (array)$db->listSources(), true)) {
+                    $db->execute('DROP TABLE ' . $db->fullTableName($config['prefix'] . $table, true, false));
+                }
+            }
+            $db->disconnect();
+            ConnectionManager::drop('debug_kit_large_test');
+        }
     }
 
     /**
