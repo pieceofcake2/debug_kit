@@ -1,8 +1,8 @@
 /**
  * History panel.
  *
- * Copied from cakephp/debug_kit 5.x (webroot/js/modules/Panels/HistoryPanel.js) and adapted for
- * CakePHP 2 by Piece of Cake 2: panels are matched by name instead of position.
+ * Adapted from cakephp/debug_kit 5.x (webroot/js/modules/Panels/HistoryPanel.js) for CakePHP 2
+ * by Piece of Cake 2: panels are matched by name instead of position.
  *
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -14,22 +14,62 @@
  * @link          https://cakephp.org CakePHP(tm) Project
  * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
-export default (($) => {
+export default (() => {
   const pad = (value) => String(value).padStart(2, '0');
   const formatDate = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
     + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 
+  const templateHtml = (id) => {
+    const template = document.getElementById(id);
+    return template ? template.textContent : '';
+  };
+
+  const toElement = (html) => {
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    return template.content.firstElementChild;
+  };
+
+  const updateButtons = (toolbar, response) => {
+    const summaries = {};
+    for (let i = 0, len = response.panels.length; i < len; i++) {
+      summaries[response.panels[i].panel] = response.panels[i].summary;
+    }
+
+    toolbar.panelButtons.forEach((button) => {
+      const name = button.getAttribute('data-panel');
+      // Don't overwrite the history panel.
+      if (name === 'history') {
+        return;
+      }
+      button.classList.toggle('is-unavailable', !(name in summaries));
+      let summary = button.querySelector('.c-panel__summary');
+      if (!summaries[name]) {
+        if (summary) {
+          summary.remove();
+        }
+        return;
+      }
+      if (!summary) {
+        summary = document.createElement('span');
+        summary.className = 'c-panel__summary';
+        button.appendChild(summary);
+      }
+      summary.textContent = summaries[name];
+    });
+  };
+
   const init = (toolbar) => {
-    const $historyPanel = $('.c-history-panel');
-    if (!$historyPanel.length) {
+    const historyPanel = document.querySelector('.c-history-panel');
+    if (!historyPanel) {
       return;
     }
 
-    if (!$('.c-history-panel > ul').length) {
-      $historyPanel.append($('#list-template').html());
+    if (!historyPanel.querySelector(':scope > ul')) {
+      historyPanel.insertAdjacentHTML('beforeend', templateHtml('list-template'));
     }
 
-    const listItem = $('#list-item-template').html();
+    const listItem = templateHtml('list-item-template');
 
     for (let i = 0; i < toolbar.ajaxRequests.length; i++) {
       const element = toolbar.ajaxRequests[i];
@@ -41,66 +81,59 @@ export default (($) => {
       }
 
       // Only the {id} placeholder feeds attributes; substitute it now and
-      // populate the visible text via .text() so attacker-controlled values
+      // populate the visible text via textContent so attacker-controlled values
       // (method/URL/Content-Type from cross-origin responses) cannot inject
       // HTML into the toolbar iframe (same-origin with the dev's app).
-      const $row = $(listItem.replace(/\{id\}/g, safeId));
-      $row.find('.c-history-panel__time').text(formatDate(new Date(element.date)));
+      const row = toElement(listItem.replace(/\{id\}/g, safeId));
+      const first = document.querySelector('.c-history-panel__list li');
+      if (!row || !first) {
+        continue;
+      }
+      row.querySelector('.c-history-panel__time').textContent = formatDate(new Date(element.date));
       // bubble[0] is the static "XHR" label; the next three are method/status/type.
-      const $bubbles = $row.find('.c-history-panel__bubble').not('.c-history-panel__xhr');
-      $bubbles.eq(0).text(String(element.method ?? ''));
-      $bubbles.eq(1).text(String(element.status ?? ''));
-      $bubbles.eq(2).text(String(element.type ?? ''));
-      $row.find('.c-history-panel__url').text(String(element.url ?? ''));
+      const bubbles = row.querySelectorAll('.c-history-panel__bubble:not(.c-history-panel__xhr)');
+      bubbles[0].textContent = String(element.method ?? '');
+      bubbles[1].textContent = String(element.status ?? '');
+      bubbles[2].textContent = String(element.type ?? '');
+      row.querySelector('.c-history-panel__url').textContent = String(element.url ?? '');
 
-      $('.c-history-panel__list li:first').after($row);
+      first.after(row);
     }
 
-    const links = $('.c-history-panel__link');
+    const links = Array.from(document.querySelectorAll('.c-history-panel__link'));
     // Highlight the active request via attribute comparison rather than an
-    // unquoted attribute-selector built from a runtime value.
-    links.filter(function highlightActive() {
-      return this.getAttribute('data-request') === String(toolbar.currentRequest);
-    }).addClass('is-active');
+    // attribute selector built from a runtime value.
+    links
+      .filter((link) => link.getAttribute('data-request') === String(toolbar.currentRequest))
+      .forEach((link) => link.classList.add('is-active'));
 
-    links.on('click', function historyLinkClick(e) {
-      const el = $(this);
-      e.preventDefault();
-      links.removeClass('is-active');
-      el.addClass('is-active');
+    links.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        links.forEach((el) => el.classList.remove('is-active'));
+        link.classList.add('is-active');
 
-      $.getJSON(el.attr('href'), (response) => {
-        const requestId = el.attr('data-request');
-        toolbar.currentRequest = requestId;
-        if (requestId === toolbar.originalRequest) {
-          $('body').removeClass('is-history-mode');
-        } else {
-          $('body').addClass('is-history-mode');
-        }
-
-        const summaries = {};
-        for (let i = 0, len = response.panels.length; i < len; i++) {
-          summaries[response.panels[i].panel] = response.panels[i].summary;
-        }
-
-        toolbar.$panelButtons.each(function updateButton() {
-          const button = $(this);
-          const name = button.attr('data-panel');
-          // Don't overwrite the history panel.
-          if (name === 'history') {
-            return;
-          }
-          button.toggleClass('is-unavailable', !(name in summaries));
-          let summary = button.find('.c-panel__summary');
-          if (!summaries[name]) {
-            summary.remove();
-            return;
-          }
-          if (!summary.length) {
-            summary = $('<span class="c-panel__summary">').appendTo(button);
-          }
-          summary.text(summaries[name]);
-        });
+        fetch(link.getAttribute('href'), {
+          headers: {
+            Accept: 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((response) => {
+            const requestId = link.getAttribute('data-request');
+            toolbar.currentRequest = requestId;
+            document.body.classList.toggle('is-history-mode', requestId !== toolbar.originalRequest);
+            updateButtons(toolbar, response);
+          })
+          .catch(() => {
+            // Keep the toolbar as it is when the request can't be loaded.
+          });
       });
     });
   };
@@ -116,4 +149,4 @@ export default (($) => {
   return {
     onEvent,
   };
-})(jQuery);
+})();

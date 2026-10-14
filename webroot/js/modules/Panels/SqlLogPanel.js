@@ -13,29 +13,51 @@
  * @link          https://cakephp.org CakePHP(tm) Project
  * @license       https://www.opensource.org/licenses/mit-license.php MIT License
  */
-export default (($) => {
-  const onEvent = () => {
-    $(document).on('click', '#sql_log-tab .sql-explain-link', function explain(event) {
-      event.preventDefault();
-      const form = $(this.form);
-      const dbName = form.find('input[name*=ds]').val() || 'default';
-      const target = $(`[id="sql-log-explain-${dbName}"]`);
+export default (() => {
+  const showError = (target) => {
+    const message = document.createElement('p');
+    message.className = 'c-flash c-flash--warning';
+    message.textContent = 'Could not fetch EXPLAIN for query.';
+    target.replaceChildren(message);
+  };
 
-      $.ajax({
-        url: this.form.action,
-        data: form.serialize(),
-        type: 'POST',
-        success(response) {
-          target.html(response);
-        },
-        error() {
-          $('<p class="c-flash c-flash--warning">').text('Could not fetch EXPLAIN for query.').appendTo(target.empty());
-        },
-      });
+  const onEvent = () => {
+    document.addEventListener('click', (event) => {
+      const link = event.target instanceof Element ? event.target.closest('#sql_log-tab .sql-explain-link') : null;
+      if (!link || !link.form) {
+        return;
+      }
+      event.preventDefault();
+      const { form } = link;
+      const ds = form.querySelector('input[name*=ds]');
+      const dbName = (ds && ds.value) || 'default';
+      const target = document.getElementById(`sql-log-explain-${dbName}`);
+
+      fetch(form.action, {
+        method: 'POST',
+        body: new URLSearchParams(new FormData(form)),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((html) => {
+          if (target) {
+            target.innerHTML = html;
+          }
+        })
+        .catch(() => {
+          if (target) {
+            showError(target);
+          }
+        });
     });
   };
 
   return {
     onEvent,
   };
-})(jQuery);
+})();

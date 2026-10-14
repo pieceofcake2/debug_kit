@@ -1,7 +1,7 @@
 /**
  * Toolbar bootstrap.
  *
- * Copied from cakephp/debug_kit 5.x (webroot/js/modules/Start.js) and adapted for CakePHP 2 by Piece of Cake 2.
+ * Adapted from cakephp/debug_kit 5.x (webroot/js/modules/Start.js) for CakePHP 2 by Piece of Cake 2.
  *
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -16,7 +16,7 @@
 import Toolbar from './Toolbar.js';
 import Helper from './Helper.js';
 
-export default (($) => {
+export default (() => {
   const init = () => {
     const elem = document.getElementById('__debug_kit_app');
     if (elem) {
@@ -28,10 +28,10 @@ export default (($) => {
     }
 
     return new Toolbar({
-      body: $('body'),
-      container: $('.js-panel-content-container'),
-      toggleBtn: $('.js-toolbar-toggle'),
-      panelButtons: $('.js-panel-button'),
+      body: document.body,
+      container: document.querySelector('.js-panel-content-container'),
+      toggleBtn: document.querySelector('.js-toolbar-toggle'),
+      panelButtons: Array.from(document.querySelectorAll('.js-panel-button')),
       currentRequest: window.debugKitId,
       originalRequest: window.debugKitId,
       baseUrl: window.debugKitBaseUrl,
@@ -44,4 +44,4 @@ export default (($) => {
   return {
     init,
   };
-})(jQuery);
+})();

@@ -59,8 +59,6 @@ $assets = $toolbar['assets'] + ['css' => [], 'javascript' => []];
 if ($assets['css']) {
 	$this->Html->css($assets['css'], ['inline' => false]);
 }
-$this->Html->script('DebugKit./js/jquery', ['inline' => false]);
-$this->Html->script('DebugKit./js/legacy', ['inline' => false]);
 foreach ($assets['javascript'] as $script) {
 	if ($script) {
 		$this->Html->script($script, ['inline' => false]);
