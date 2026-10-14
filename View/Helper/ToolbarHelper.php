@@ -20,6 +20,9 @@ App::uses('AppHelper', 'View/Helper');
  * Acts as a facade for other toolbars helpers as well.
  *
  * @since         DebugKit 0.1
+ * @method void send() Send the toolbar output, implemented by the backend helper.
+ * @method string explainLink(string $sql, string $connection) Generate a SQL explain link, implemented by the backend helper.
+ * @method string makeNeatArray(mixed $values, int $openDepth = 0, int $currentDepth = 0, bool $doubleEncode = false) Render an array as nested lists, implemented by the backend helper.
  */
 class ToolbarHelper extends AppHelper
 {
@@ -36,6 +39,34 @@ class ToolbarHelper extends AppHelper
      * @var bool
      */
     protected $_cacheEnabled = false;
+
+    /**
+     * Lowercased name of the current helper class.
+     *
+     * @var string
+     */
+    protected $_myName;
+
+    /**
+     * Class name (without plugin prefix) of the backend helper calls are delegated to.
+     *
+     * @var string
+     */
+    protected $_backEndClassName;
+
+    /**
+     * Cache key of the toolbar state.
+     *
+     * @var string
+     */
+    protected $_cacheKey;
+
+    /**
+     * Cache config of the toolbar state.
+     *
+     * @var string
+     */
+    protected $_cacheConfig;
 
     /**
      * Construct the helper and make the backend helper.

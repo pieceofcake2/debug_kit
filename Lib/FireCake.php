@@ -17,8 +17,8 @@ if (!function_exists('firecake')) {
     /**
      * Procedural version of FireCake::log()
      *
-     * @param string $message The message.
-     * @param null $label The label.
+     * @param mixed $message The message.
+     * @param string|null $label The label.
      * @return void
      */
     function firecake($message, $label = null)
@@ -42,14 +42,14 @@ class FireCake
      * Options for FireCake.
      *
      * @see _defaultOptions and setOptions();
-     * @var string
+     * @var array
      */
     public $options = [];
 
     /**
      * Default Options used in CakeFirePhp
      *
-     * @var string
+     * @var array
      */
     protected $_defaultOptions = [
         'maxObjectDepth' => 10,
@@ -204,7 +204,7 @@ class FireCake
     /**
      * Convenience wrapper for LOG messages
      *
-     * @param string $message Message to log
+     * @param mixed $message Message to log
      * @param string $label Label for message (optional)
      * @return void
      */
@@ -216,7 +216,7 @@ class FireCake
     /**
      * Convenience wrapper for WARN messages
      *
-     * @param string $message Message to log
+     * @param mixed $message Message to log
      * @param string $label Label for message (optional)
      * @return void
      */
@@ -228,7 +228,7 @@ class FireCake
     /**
      * Convenience wrapper for INFO messages
      *
-     * @param string $message Message to log
+     * @param mixed $message Message to log
      * @param string $label Label for message (optional)
      * @return void
      */
@@ -240,7 +240,7 @@ class FireCake
     /**
      * Convenience wrapper for ERROR messages
      *
-     * @param string $message Message to log
+     * @param mixed $message Message to log
      * @param string $label Label for message (optional)
      * @return void
      */
@@ -253,7 +253,7 @@ class FireCake
      * Convenience wrapper for TABLE messages
      *
      * @param string $label Label for message (optional)
-     * @param string $message Message to log
+     * @param array $message Table rows to log, the first row being the headers
      * @return void
      */
     public static function table($label, $message)
@@ -265,7 +265,7 @@ class FireCake
      * Convenience wrapper for DUMP messages
      *
      * @param string $label Unique label for message
-     * @param string $message Message to log
+     * @param mixed $message Message to log
      * @return void
      */
     public static function dump($label, $message)
@@ -367,19 +367,16 @@ class FireCake
         }
 
         if ($_this->options['includeLineNumbers']) {
-            if (!isset($meta['file']) || !isset($meta['line'])) {
-                $trace = debug_backtrace();
-                for ($i = 0, $len = count($trace); $i < $len; $i++) {
-                    $keySet = (isset($trace[$i]['class']) && isset($trace[$i]['function']));
-                    $selfCall = ($keySet &&
-                        strtolower($trace[$i]['class']) === 'firecake' &&
-                        in_array($trace[$i]['function'], $_this->_methodIndex)
-                    );
-                    if ($selfCall) {
-                        $meta['File'] = isset($trace[$i]['file']) ? Debugger::trimPath($trace[$i]['file']) : '';
-                        $meta['Line'] = $trace[$i]['line'] ?? '';
-                        break;
-                    }
+            $trace = debug_backtrace();
+            for ($i = 0, $len = count($trace); $i < $len; $i++) {
+                $selfCall = (isset($trace[$i]['class']) &&
+                    strtolower($trace[$i]['class']) === 'firecake' &&
+                    in_array($trace[$i]['function'], $_this->_methodIndex)
+                );
+                if ($selfCall) {
+                    $meta['File'] = isset($trace[$i]['file']) ? Debugger::trimPath($trace[$i]['file']) : '';
+                    $meta['Line'] = $trace[$i]['line'] ?? '';
+                    break;
                 }
             }
         }
@@ -491,7 +488,7 @@ class FireCake
      * @param mixed $object Object or variable to encode to string.
      * @param int $objectDepth Current Depth in object chains.
      * @param int $arrayDepth Current Depth in array chains.
-     * @return Object|string
+     * @return array|string|float|int|bool|null
      */
     public static function stringEncode($object, $objectDepth = 1, $arrayDepth = 1)
     {
@@ -553,7 +550,7 @@ class FireCake
      * Send Headers - write headers.
      *
      * @param string $name Name of the header.
-     * @param string $value The value of the header.
+     * @param string|int $value The value of the header.
      * @return void
      */
     protected function _sendHeader($name, $value)

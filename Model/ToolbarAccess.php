@@ -22,7 +22,7 @@ class ToolbarAccess extends Model
     /**
      * No database table.
      *
-     * @var mixed
+     * @var string|false
      */
     public $useTable = false;
 
@@ -40,8 +40,8 @@ class ToolbarAccess extends Model
         $datasource = $db->config['datasource'];
 
         $return = [];
-        if (preg_match('/(Mysql|Postgres)$/', $datasource)) {
-            $explained = $db->query('EXPLAIN ' . $query);
+        if ($db instanceof DboSource && preg_match('/(Mysql|Postgres)$/', $datasource)) {
+            $explained = $db->fetchAll('EXPLAIN ' . $query);
             if (preg_match('/Postgres$/', $datasource)) {
                 $queryPlan = [];
                 foreach ($explained as $postgreValue) {
@@ -49,6 +49,7 @@ class ToolbarAccess extends Model
                 }
                 $return = array_merge([['']], $queryPlan);
             } else {
+                $queryPlan = [];
                 $keys = array_keys($explained[0][0]);
                 foreach ($explained as $mysqlValue) {
                     $queryPlan[] = array_values($mysqlValue[0]);

@@ -18,6 +18,7 @@
  *
  * @uses          AppHelper
  * @since         v 1.0 (22-Jun-2009)
+ * @property ToolbarHelper $Toolbar
  */
 class TidyHelper extends AppHelper
 {
@@ -94,7 +95,7 @@ class TidyHelper extends AppHelper
         if ($html) {
             $this->process($html);
         } elseif ($this->results === null) {
-            $this->process($this->_View->output);
+            $this->process($this->_View->fetch('content'));
         }
         if (!$this->results) {
             return '<p>' . __d('debug_kit', 'No markup errors found') . '</p>';
@@ -120,7 +121,7 @@ class TidyHelper extends AppHelper
      */
     public function tidyErrors($in = '', &$out = '')
     {
-        $out = preg_replace('@>\s*<@s', ">\n<", $in);
+        $out = preg_replace('@>\s*<@s', ">\n<", $in) ?? $in;
 
         // direct access? windows etc
         if (function_exists('tidy_parse_string')) {
@@ -158,7 +159,7 @@ class TidyHelper extends AppHelper
      */
     protected function _exec($cmd, &$out = null)
     {
-        if (DS === '/') {
+        if (DIRECTORY_SEPARATOR === '/') {
             $_out = exec($cmd . ' 2>&1', $out, $return);
         } else {
             $_out = exec($cmd, $out, $return);

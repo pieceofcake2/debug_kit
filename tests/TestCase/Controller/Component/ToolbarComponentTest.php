@@ -395,6 +395,32 @@ class ToolbarComponentTest extends CakeTestCase
     }
 
     /**
+     * Test that unserializable exceptions are replaced with a readable description when saving state
+     *
+     * @return void
+     */
+    public function testStateSavingReplacesExceptions(): void
+    {
+        $this->_loadController();
+        $configName = 'debug_kit';
+        $this->Controller->Toolbar->cacheKey = 'toolbar_history';
+
+        $exception = new RuntimeException('Something went wrong');
+        $this->Controller->Components->trigger('startup', [$this->Controller]);
+        $this->Controller->set('error', $exception);
+        $this->Controller->Components->trigger('beforeRender', [$this->Controller]);
+
+        $result = Cache::read('toolbar_history', $configName);
+        $expected = sprintf(
+            'Unserializable object - RuntimeException. Error: Something went wrong in %s, line %s',
+            $exception->getFile(),
+            $exception->getLine(),
+        );
+        $this->assertSame($expected, $result[0]['variables']['content']['error']);
+        Cache::delete('toolbar_history', $configName);
+    }
+
+    /**
      * Test Before Render callback
      *
      * @return void

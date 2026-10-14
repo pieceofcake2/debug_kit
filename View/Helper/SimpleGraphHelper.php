@@ -20,6 +20,7 @@ App::uses('AppHelper', 'View/Helper');
  * Allows creation and display of extremely simple graphing elements
  *
  * @since         DebugKit 1.0
+ * @property HtmlHelper $Html
  */
 class SimpleGraphHelper extends AppHelper
 {
@@ -53,13 +54,15 @@ class SimpleGraphHelper extends AppHelper
      *
      * @param mixed $value Value to be graphed.
      * @param mixed $offset How much indentation.
-     * @param \Graph|array $options Graph options.
+     * @param array $options Graph options.
      * @return string HTML graph.
      */
     public function bar($value, $offset, $options = [])
     {
         $settings = array_merge($this->_defaultSettings, $options);
-        extract($settings);
+        $max = $settings['max'];
+        $width = $settings['width'];
+        $valueType = $settings['valueType'];
 
         $graphValue = (float)$value / $max * $width;
         $graphValue = max(round($graphValue), 1);
@@ -82,7 +85,6 @@ class SimpleGraphHelper extends AppHelper
                     ],
             ),
             ['style' => "width: {$width}px;"],
-            false,
         );
     }
 }

@@ -67,7 +67,7 @@ class ToolbarAccessController extends DebugKitAppController
         $this->helpers['DebugKit.Toolbar']['cacheKey'] = $this->Toolbar->cacheKey;
         $this->helpers['DebugKit.Toolbar']['cacheConfig'] = 'debug_kit';
 
-        if (isset($this->Auth) && method_exists($this->Auth, 'mapActions')) {
+        if (isset($this->Auth)) {
             $this->Auth->mapActions([
                 'read' => ['history_state', 'sql_explain'],
             ]);
@@ -77,19 +77,21 @@ class ToolbarAccessController extends DebugKitAppController
     /**
      * Get a stored history state from the toolbar cache.
      *
-     * @param null $key The key.
-     * @return void
+     * @param string|null $key The key.
+     * @return CakeResponse|null
      */
     public function history_state($key = null)
     {
         if (Configure::read('debug') == 0) {
             return $this->redirect($this->referer());
         }
-        $oldState = $this->Toolbar->loadState($key);
+        $oldState = $key === null ? [] : $this->Toolbar->loadState($key);
         $this->set('toolbarState', $oldState);
         $this->set('debugKitInHistoryMode', true);
-        $this->viewClass = null;
-        $this->layout = null;
+        $this->viewClass = 'View';
+        $this->layout = false;
+
+        return null;
     }
 
     /**

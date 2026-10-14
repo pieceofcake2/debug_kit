@@ -21,7 +21,7 @@ class IncludePanel extends DebugPanel
     /**
      * The list of plugins within the application
      *
-     * @var <type>
+     * @var array<string, string>
      */
     protected $_pluginPaths = [];
 
@@ -119,7 +119,7 @@ class IncludePanel extends DebugPanel
      * Check if a path is from a plugin
      *
      * @param string $file The file.
-     * @return bool True if it is a plugin path, else false.
+     * @return string|false The plugin name if it is a plugin path, else false.
      */
     protected function _isPluginFile($file)
     {
