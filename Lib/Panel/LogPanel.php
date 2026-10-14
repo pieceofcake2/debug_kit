@@ -57,4 +57,23 @@ class LogPanel extends DebugPanel
 
         return $logger;
     }
+
+    /**
+     * Get the summary: number of log entries.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        if (!$content instanceof DebugKitLog) {
+            return '0';
+        }
+        $count = 0;
+        foreach ($content->logs as $logs) {
+            $count += count($logs);
+        }
+
+        return (string)$count;
+    }
 }

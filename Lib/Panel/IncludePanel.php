@@ -80,6 +80,22 @@ class IncludePanel extends DebugPanel
     }
 
     /**
+     * Get the summary: number of included application, plugin and core files.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        if (!is_array($content)) {
+            return '0';
+        }
+        unset($content['paths']);
+
+        return (string)count(array_filter(Hash::flatten($content), 'is_string'));
+    }
+
+    /**
      * Get the possible include paths
      *
      * @return array

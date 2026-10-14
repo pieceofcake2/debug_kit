@@ -14,5 +14,4 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 ?>
-<h2><?php echo __d('debug_kit', 'Session'); ?></h2>
 <?php echo $this->Toolbar->makeNeatArray($content);

@@ -84,4 +84,18 @@ class DebugPanel
     public function beforeRender(Controller $controller)
     {
     }
+
+    /**
+     * Get the summary of the panel.
+     *
+     * The summary is displayed next to the panel button in the toolbar, even when the
+     * panel is collapsed. Return an empty string to not display a summary.
+     *
+     * @param mixed $content The content returned by beforeRender().
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        return '';
+    }
 }

@@ -14,8 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  **/
 ?>
-<h2> <?php echo __d('debug_kit', 'Included Files'); ?></h2>
-
 <h4>Include Paths</h4>
 <?php
 	foreach ($content['paths'] as $i => $path) {

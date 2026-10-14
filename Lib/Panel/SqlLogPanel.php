@@ -27,6 +27,26 @@ class SqlLogPanel extends DebugPanel
     public $slowRate = 20;
 
     /**
+     * Name of the connection used by the toolbar storage, which is not logged.
+     *
+     * @var string
+     */
+    public $storageConnection = 'debug_kit';
+
+    /**
+     * Constructor
+     *
+     * @param array $settings The toolbar settings.
+     */
+    public function __construct($settings = [])
+    {
+        parent::__construct();
+        if (!empty($settings['connection'])) {
+            $this->storageConnection = $settings['connection'];
+        }
+    }
+
+    /**
      * Gets the connection names that should have logs + dumps generated.
      *
      * @param Controller $controller The controller.
@@ -41,6 +61,9 @@ class SqlLogPanel extends DebugPanel
 
         $dbConfigs = ConnectionManager::sourceList();
         foreach ($dbConfigs as $configName) {
+            if ($configName === $this->storageConnection) {
+                continue;
+            }
             $driver = null;
             $db = ConnectionManager::getDataSource($configName);
             if (
@@ -61,5 +84,33 @@ class SqlLogPanel extends DebugPanel
         }
 
         return ['connections' => $connections, 'threshold' => $this->slowRate];
+    }
+
+    /**
+     * Get the summary: number of queries and total query time.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        if (empty($content['connections'])) {
+            return '0';
+        }
+        $count = $time = 0;
+        foreach (array_keys($content['connections']) as $configName) {
+            $db = ConnectionManager::getDataSource($configName);
+            if (!method_exists($db, 'getLog')) {
+                continue;
+            }
+            $log = $db->getLog(false, false);
+            $count += (int)$log['count'];
+            $time += (float)$log['time'];
+        }
+        if (!$count) {
+            return '0';
+        }
+
+        return sprintf('%d / %s ms', $count, round($time));
     }
 }

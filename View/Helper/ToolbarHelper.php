@@ -208,7 +208,8 @@ class ToolbarHelper extends AppHelper
             return [];
         }
 
-        $log = $db->getLog();
+        // Do not clear the log, so that it can be read again by other toolbar outputs.
+        $log = $db->getLog(false, false);
 
         $out = [
             'queries' => [],

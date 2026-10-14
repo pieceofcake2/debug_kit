@@ -41,48 +41,49 @@ class HistoryPanel extends DebugPanel
     /**
      * beforeRender callback function
      *
+     * Lists the previous requests kept in the toolbar storage.
+     *
      * @param Controller $controller The controller.
-     * @return array contents for panel
+     * @return array contents for panel, with the `current` request and the previous `requests`.
      */
     public function beforeRender(Controller $controller)
     {
-        if (!isset($controller->Toolbar)) {
+        if (!isset($controller->Toolbar) || !($controller->Toolbar instanceof ToolbarComponent)) {
             return [];
         }
-        $cacheKey = $controller->Toolbar->cacheKey;
-        $toolbarHistory = Cache::read($cacheKey, 'debug_kit');
-        $historyStates = [];
-        if (is_array($toolbarHistory) && !empty($toolbarHistory)) {
-            $prefix = [];
-            if (!empty($controller->request->params['prefix'])) {
-                $prefix[$controller->request->params['prefix']] = false;
+        $toolbar = $controller->Toolbar;
+        $current = [
+            'id' => $toolbar->requestId,
+            'url' => $controller->request->here(),
+            'method' => $controller->request->method(),
+            'status_code' => $controller->response->statusCode(),
+            'content_type' => $controller->response->type(),
+            'requested_at' => date('Y-m-d H:i:s', (int)((float)env('REQUEST_TIME_FLOAT') ?: time())),
+        ];
+        $requests = [];
+        $storage = $toolbar->storage();
+        if ($storage) {
+            foreach ($storage->recent($this->history + 1) as $request) {
+                if ($request['id'] !== $toolbar->requestId) {
+                    $requests[] = $request;
+                }
             }
-            foreach ($toolbarHistory as $i => $state) {
-                if (!isset($state['request']['content']['url'])) {
-                    continue;
-                }
-                $title = $state['request']['content']['url'];
-                $query = $state['request']['content']['query'] ?? null;
-                if (isset($query['url'])) {
-                    unset($query['url']);
-                }
-                if (!empty($query)) {
-                    $title .= '?' . urldecode(http_build_query($query));
-                }
-                $historyStates[] = [
-                    'title' => $title,
-                    'url' => array_merge($prefix, [
-                        'plugin' => 'DebugKit',
-                        'controller' => 'ToolbarAccess',
-                        'action' => 'history_state',
-                        $i + 1]),
-                ];
-            }
-        }
-        if (count($historyStates) >= $this->history) {
-            array_pop($historyStates);
         }
 
-        return $historyStates;
+        return [
+            'current' => $current,
+            'requests' => array_slice($requests, 0, max(0, (int)$this->history)),
+        ];
+    }
+
+    /**
+     * Get the summary: number of ajax requests, updated by the toolbar.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        return '0 xhr';
     }
 }

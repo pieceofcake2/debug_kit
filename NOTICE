@@ -1,0 +1,28 @@
+Piece of Cake 2 DebugKit
+Copyright (c) 2025-present Piece of Cake 2
+
+This product includes software from cakephp/debug_kit 5.x
+(https://github.com/cakephp/debug_kit), Copyright (c) Cake Software Foundation, Inc.,
+licensed under the MIT License (see LICENSE). The following files are copied from
+cakephp/debug_kit 5.x or adapted from it, and keep its copyright notice:
+
+- webroot/css/style.css
+- webroot/css/reset.css (based on the public domain Meyer reset)
+- webroot/img/cake.icon.png
+- webroot/js/jquery.js (jQuery 3.6.0, Copyright OpenJS Foundation and other contributors, MIT License)
+- webroot/js/inject-iframe.js
+- webroot/js/main.js
+- webroot/js/modules/Helper.js
+- webroot/js/modules/Keyboard.js
+- webroot/js/modules/Start.js
+- webroot/js/modules/Toolbar.js
+- webroot/js/modules/Panels/HistoryPanel.js
+- View/Layouts/toolbar.ctp
+- View/Requests/view.ctp
+- View/Panels/view.ctp
+- View/Elements/history_panel.ctp
+- Lib/Storage/DebugKitDatabaseStorage.php (request and panel schema)
+
+This product includes the Raleway font (webroot/css/raleway-regular.woff,
+webroot/css/raleway-regular.ttf), Copyright 2010 The Raleway Project Authors,
+licensed under the SIL Open Font License 1.1 (see webroot/css/raleway-OFL.txt).

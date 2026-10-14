@@ -181,42 +181,13 @@ class HtmlToolbarHelper extends ToolbarHelper
     /**
      * Send method
      *
+     * The toolbar is no longer rendered into the page. ToolbarComponent::shutdown() records the
+     * request and injects a small loader script, which displays the toolbar in an iframe.
+     *
      * @return void
      */
     public function send()
     {
-        if (!$this->settings['forceEnable'] && Configure::read('debug') == 0) {
-            return;
-        }
-        $view = $this->_View;
-        $head = '';
-        if (isset($view->viewVars['debugToolbarCss']) && !empty($view->viewVars['debugToolbarCss'])) {
-            $head .= $this->Html->css($view->viewVars['debugToolbarCss']);
-        }
-
-        $js = sprintf('window.DEBUGKIT_JQUERY_URL = "%s";', $this->webroot('/debug_kit/js/jquery.js'));
-        $head .= $this->Html->scriptBlock($js);
-
-        if (isset($view->viewVars['debugToolbarJavascript'])) {
-            foreach ($view->viewVars['debugToolbarJavascript'] as $script) {
-                if ($script) {
-                    $head .= $this->Html->script($script);
-                }
-            }
-        }
-        $search = '</head>';
-        $output = $view->fetch('content');
-        $pos = strpos($output, $search);
-        if ($pos !== false) {
-            $view->assign('content', substr_replace($output, $head . "\n</head>", $pos, strlen($search)));
-        }
-        $toolbar = $view->element('debug_toolbar', ['disableTimer' => true], ['plugin' => 'DebugKit']);
-        $search = '</body>';
-        $output = $view->fetch('content');
-        $pos = strrpos($output, $search);
-        if ($pos !== false) {
-            $view->assign('content', substr_replace($output, $toolbar . "\n</body>", $pos, strlen($search)));
-        }
     }
 
     /**

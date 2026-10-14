@@ -35,4 +35,20 @@ class VariablesPanel extends DebugPanel
 
         return array_merge($viewVars, ['$request->data' => $controller->request->data]);
     }
+
+    /**
+     * Get the summary: number of view variables.
+     *
+     * @param mixed $content The panel content.
+     * @return string
+     */
+    public function summary($content = null)
+    {
+        if (!is_array($content)) {
+            return '0';
+        }
+        unset($content['$request->data']);
+
+        return (string)count($content);
+    }
 }
