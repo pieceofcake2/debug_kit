@@ -54,6 +54,39 @@ class ToolbarAccessControllerTest extends CakeTestCase
     }
 
     /**
+     * Test that beforeFilter disables the Toolbar component and passes its cache settings to the helper.
+     *
+     * @return void
+     */
+    public function testBeforeFilter(): void
+    {
+        $this->Controller->Components->init($this->Controller);
+        $this->Controller->beforeFilter();
+
+        $this->assertFalse($this->Controller->Components->enabled('Toolbar'));
+        $this->assertSame('toolbar_access_controller_test', $this->Controller->helpers['DebugKit.Toolbar']['cacheKey']);
+        $this->assertSame('debug_kit', $this->Controller->helpers['DebugKit.Toolbar']['cacheConfig']);
+    }
+
+    /**
+     * Test that beforeFilter and history_state work when the Toolbar component is not loaded.
+     *
+     * @return void
+     */
+    public function testWithoutToolbarComponent(): void
+    {
+        unset($this->Controller->Toolbar);
+
+        $this->Controller->beforeFilter();
+
+        $this->assertArrayNotHasKey('cacheKey', $this->Controller->helpers['DebugKit.Toolbar']);
+        $this->assertArrayNotHasKey('cacheConfig', $this->Controller->helpers['DebugKit.Toolbar']);
+
+        $this->assertNull($this->Controller->history_state('1'));
+        $this->assertSame([], $this->Controller->viewVars['toolbarState']);
+    }
+
+    /**
      * Test that history_state loads the stored state and renders without a layout.
      *
      * @return void

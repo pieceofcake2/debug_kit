@@ -63,9 +63,9 @@ class ToolbarAccessController extends DebugKitAppController
     {
         if (isset($this->Toolbar)) {
             $this->Components->disable('Toolbar');
+            $this->helpers['DebugKit.Toolbar']['cacheKey'] = $this->Toolbar->cacheKey;
+            $this->helpers['DebugKit.Toolbar']['cacheConfig'] = 'debug_kit';
         }
-        $this->helpers['DebugKit.Toolbar']['cacheKey'] = $this->Toolbar->cacheKey;
-        $this->helpers['DebugKit.Toolbar']['cacheConfig'] = 'debug_kit';
 
         if (isset($this->Auth)) {
             $this->Auth->mapActions([
@@ -85,7 +85,7 @@ class ToolbarAccessController extends DebugKitAppController
         if (Configure::read('debug') == 0) {
             return $this->redirect($this->referer());
         }
-        $oldState = $key === null ? [] : $this->Toolbar->loadState($key);
+        $oldState = $key === null || !isset($this->Toolbar) ? [] : $this->Toolbar->loadState($key);
         $this->set('toolbarState', $oldState);
         $this->set('debugKitInHistoryMode', true);
         $this->viewClass = 'View';
