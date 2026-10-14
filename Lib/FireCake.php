@@ -464,8 +464,8 @@ class FireCake
     /**
      * Fix a trace for use in output
      *
-     * @param mixed $trace Trace to fix
-     * @return string
+     * @param array $trace Trace to fix
+     * @return array The trace with trimmed file paths and encoded arguments.
      */
     protected static function _escapeTrace($trace)
     {
@@ -511,7 +511,7 @@ class FireCake
             $return['__className'] = $class = $object::class;
             $properties = get_object_vars($object);
             foreach ($properties as $name => $property) {
-                $return[$name] = FireCake::stringEncode($property, 1, $objectDepth + 1);
+                $return[$name] = FireCake::stringEncode($property, $objectDepth + 1, $arrayDepth);
             }
             array_pop($_this->_encodedObjects);
         }
@@ -520,7 +520,7 @@ class FireCake
                 return '** Max Array Depth (' . $_this->options['maxArrayDepth'] . ') **';
             }
             foreach ($object as $key => $value) {
-                $return[$key] = FireCake::stringEncode($value, 1, $arrayDepth + 1);
+                $return[$key] = FireCake::stringEncode($value, $objectDepth, $arrayDepth + 1);
             }
         }
         if (is_string($object) || is_numeric($object) || is_bool($object) || $object === null) {
