@@ -19,6 +19,13 @@ App::uses('DebugPanel', 'DebugKit.Lib');
 class LogPanel extends DebugPanel
 {
     /**
+     * The log engine collecting the log entries of this request, set by DebugKitLog.
+     *
+     * @var DebugKitLog|null
+     */
+    public $logger = null;
+
+    /**
      * Constructor - sets up the log listener.
      *
      * @return \LogPanel
@@ -42,7 +49,7 @@ class LogPanel extends DebugPanel
      * beforeRender Callback
      *
      * @param Controller $controller The controller.
-     * @return array
+     * @return DebugKitLog|null
      */
     public function beforeRender(Controller $controller)
     {

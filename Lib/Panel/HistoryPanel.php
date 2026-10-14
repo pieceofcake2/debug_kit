@@ -21,7 +21,7 @@ class HistoryPanel extends DebugPanel
     /**
      * Number of history elements to keep
      *
-     * @var string
+     * @var int
      */
     public $history = 5;
 
@@ -46,6 +46,9 @@ class HistoryPanel extends DebugPanel
      */
     public function beforeRender(Controller $controller)
     {
+        if (!isset($controller->Toolbar)) {
+            return [];
+        }
         $cacheKey = $controller->Toolbar->cacheKey;
         $toolbarHistory = Cache::read($cacheKey, 'debug_kit');
         $historyStates = [];

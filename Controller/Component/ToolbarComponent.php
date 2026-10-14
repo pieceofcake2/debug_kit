@@ -141,7 +141,7 @@ class ToolbarComponent extends Component implements CakeEventListener
         ) {
             $this->enabled = false;
 
-            return false;
+            return;
         }
         if (
             $this->settings['autoRun'] === false &&
@@ -149,7 +149,7 @@ class ToolbarComponent extends Component implements CakeEventListener
         ) {
             $this->enabled = false;
 
-            return false;
+            return;
         }
 
         $this->controller->getEventManager()->attach($this);
@@ -165,8 +165,6 @@ class ToolbarComponent extends Component implements CakeEventListener
         }
 
         $this->_loadPanels($panels, $settings);
-
-        return false;
     }
 
     /**
@@ -224,7 +222,7 @@ class ToolbarComponent extends Component implements CakeEventListener
      * If automatically disabled, tell component collection about the state.
      *
      * @param Controller $controller The controller
-     * @return bool
+     * @return void
      */
     public function initialize(Controller $controller)
     {
@@ -268,7 +266,7 @@ class ToolbarComponent extends Component implements CakeEventListener
      * Component Startup
      *
      * @param Controller $controller The controller
-     * @return bool
+     * @return void
      */
     public function startup(Controller $controller)
     {
@@ -290,9 +288,9 @@ class ToolbarComponent extends Component implements CakeEventListener
      *
      * @param Controller $controller The controller
      * @param array|string $url The URL.
-     * @param null $status The status.
+     * @param int|null $status The status.
      * @param bool $exit Will the script exit.
-     * @return void
+     * @return array|null
      */
     public function beforeRedirect(Controller $controller, $url, $status = null, $exit = true)
     {
@@ -307,6 +305,8 @@ class ToolbarComponent extends Component implements CakeEventListener
         $vars = $this->_gatherVars($controller);
         $this->_saveState($controller, $vars);
         DebugTimer::stop('processToolbar');
+
+        return null;
     }
 
     /**
@@ -320,7 +320,7 @@ class ToolbarComponent extends Component implements CakeEventListener
     public function beforeRender(Controller $controller)
     {
         if (!class_exists('DebugTimer')) {
-            return null;
+            return;
         }
         DebugTimer::stop('controllerAction');
 
@@ -367,7 +367,7 @@ class ToolbarComponent extends Component implements CakeEventListener
     /**
      * Load a toolbar state from cache
      *
-     * @param int $key The key.
+     * @param string|int $key The key.
      * @return array The toolbar state.
      */
     public function loadState($key)
@@ -462,7 +462,7 @@ class ToolbarComponent extends Component implements CakeEventListener
     /**
      * Save the current state of the toolbar varibles to the cache file.
      *
-     * @param \Controller|object $controller Controller instance
+     * @param Controller $controller Controller instance
      * @param array $vars Vars to save.
      * @return void
      */
@@ -493,7 +493,6 @@ class ToolbarComponent extends Component implements CakeEventListener
                     $item = sprintf(
                         'Unserializable object - %s. Error: %s in %s, line %s',
                         $item::class,
-                        $item,
                         $item->getMessage(),
                         $item->getFile(),
                         $item->getLine(),

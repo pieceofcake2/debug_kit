@@ -26,6 +26,9 @@ class SessionPanel extends DebugPanel
      */
     public function beforeRender(Controller $controller)
     {
+        if (!isset($controller->Toolbar)) {
+            return [];
+        }
         $sessions = $controller->Toolbar->Session->read();
 
         return $sessions;

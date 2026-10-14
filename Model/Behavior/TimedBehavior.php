@@ -38,7 +38,7 @@ class TimedBehavior extends ModelBehavior
     /**
      * Setup the behavior and import required classes.
      *
-     * @param \Model|object $Model Model using the behavior
+     * @param Model $Model Model using the behavior
      * @param array $settings Settings to override for model.
      * @return void
      */
@@ -97,8 +97,8 @@ class TimedBehavior extends ModelBehavior
     /**
      * afterSave, stop the timer started from a save.
      *
-     * @param \Model $Model The model.
-     * @param string $created True if this save created a new record.
+     * @param Model $Model The model.
+     * @param bool $created True if this save created a new record.
      * @param array $options The options.
      * @return bool Always true.
      */

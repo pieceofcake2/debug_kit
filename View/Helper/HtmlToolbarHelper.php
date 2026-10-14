@@ -21,6 +21,8 @@ App::uses('ToolbarHelper', 'DebugKit.View/Helper');
  * Contains helper methods for
  *
  * @since         DebugKit 0.1
+ * @property HtmlHelper $Html
+ * @property FormHelper $Form
  */
 class HtmlToolbarHelper extends ToolbarHelper
 {
@@ -37,6 +39,13 @@ class HtmlToolbarHelper extends ToolbarHelper
      * @var array
      */
     public $settings = ['format' => 'html', 'forceEnable' => false];
+
+    /**
+     * Counter used to build unique ids for the SQL explain forms.
+     *
+     * @var int|null
+     */
+    public $explainLinkUid = null;
 
     /**
      * Recursively goes through an array and makes neat HTML out of it.
@@ -109,7 +118,7 @@ class HtmlToolbarHelper extends ToolbarHelper
                 $value instanceof Iterator ||
                 is_array($value) ||
                 $isObject
-                ) && !empty($value)
+                )
             ) {
                 $out .= $this->makeNeatArray($value, $openDepth, $nextDepth, $doubleEncode);
             } else {
@@ -196,15 +205,17 @@ class HtmlToolbarHelper extends ToolbarHelper
             }
         }
         $search = '</head>';
-        $pos = strpos($view->output, $search);
+        $output = $view->fetch('content');
+        $pos = strpos($output, $search);
         if ($pos !== false) {
-            $view->output = substr_replace($view->output, $head . "\n</head>", $pos, strlen($search));
+            $view->assign('content', substr_replace($output, $head . "\n</head>", $pos, strlen($search)));
         }
         $toolbar = $view->element('debug_toolbar', ['disableTimer' => true], ['plugin' => 'DebugKit']);
         $search = '</body>';
-        $pos = strrpos($view->output, $search);
+        $output = $view->fetch('content');
+        $pos = strrpos($output, $search);
         if ($pos !== false) {
-            $view->output = substr_replace($view->output, $toolbar . "\n</body>", $pos, strlen($search));
+            $view->assign('content', substr_replace($output, $toolbar . "\n</body>", $pos, strlen($search)));
         }
     }
 

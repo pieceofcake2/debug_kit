@@ -28,45 +28,6 @@ App::uses('DebugMemory', 'DebugKit.Lib');
 class DebugKitDebugger extends Debugger
 {
     /**
-     * destruct method
-     *
-     * Allow timer info to be displayed if the code dies or is being debugged before rendering the view
-     * Cheat and use the debug log class for formatting
-     *
-     * @return void
-     */
-    public function __destruct()
-    {
-        $timers = DebugTimer::getAll();
-        if (Configure::read('debug') < 2 || count($timers) > 0) {
-            return;
-        }
-        $timers = array_values($timers);
-        $end = end($timers);
-        echo '<table class="cake-sql-log"><tbody>';
-        echo '<caption>Debug timer info</caption>';
-        echo '<tr><th>Message</th><th>Start Time (ms)</th><th>End Time (ms)</th><th>Duration (ms)</th></tr>';
-        $i = 0;
-        foreach ($timers as $timer) {
-            $indent = 0;
-            for ($j = 0; $j < $i; $j++) {
-                if ($timers[$j]['end'] > $timer['start'] && ($timers[$j]['end']) > $timer['end']) {
-                    $indent++;
-                }
-            }
-            $indent = str_repeat(' &raquo; ', $indent);
-
-            extract($timer);
-            $start = round($start * 1000, 0);
-            $end = round($end * 1000, 0);
-            $time = round($time * 1000, 0);
-            echo "<tr><td>{$indent}$message</td><td>$start</td><td>$end</td><td>$time</td></tr>";
-            $i++;
-        }
-        echo '</tbody></table>';
-    }
-
-    /**
      * Start an benchmarking timer.
      *
      * @param string $name The name of the timer to start.
