@@ -16,8 +16,8 @@ for [pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp).
 
 ## Documentation
 
-- Website: https://pieceofcake2.github.io/debug_kit/
-- Markdown: [docs/README.md](docs/README.md) and the pages it links (for AI tools and offline reading)
+- Website: https://pieceofcake2.github.io/debug_kit/ (日本語: https://pieceofcake2.github.io/debug_kit/ja/)
+- Markdown: [docs/README.md](docs/README.md) (日本語: [docs/ja/README.md](docs/ja/README.md)) and the pages it links (for AI tools and offline reading)
 
 The Markdown documentation is also included in the Composer package, in the plugin's directory: `plugins/DebugKit/docs/README.md` (the location depends on your `installer-paths`). Install the package with `--dev` if you only need it for development.
 
