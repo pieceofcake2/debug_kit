@@ -22,7 +22,7 @@ FireCake、`ToolbarAccess` コントローラーは引き続き動作します�
   `css`/`javascript` ファイル (`DebugPanel::$css`、`DebugPanel::$javascript`) は引き続きツールバーの
   iframe に読み込まれますが、パネルの JavaScript は jQuery や古い API に依存してはいけません。必要なものを
   バンドルし、`DEBUGKIT.loader.register()` の代わりに `initPanel` イベント
-  ([パネルのエレメント](panels.md#panel-elements) を参照してください) を使ってください。
+  ([パネルのエレメント](panels.md#panel-elements) をご覧ください) を使ってください。
 - 組み込みのエレメントは独自の `<h2>` タイトルを出力しなくなりました。パネルのタイトルはツールバーが
   表示します。
 - `ToolbarHelper::getQueryLogs()` は、接続のクエリログをクリアしなくなりました。

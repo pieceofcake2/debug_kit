@@ -95,7 +95,7 @@ CakePHP 2 に合わせて取り入れています。
 
 ツールバーの見た目とアーキテクチャは、[cakephp/debug_kit](https://github.com/cakephp/debug_kit) 5.x
 (Copyright (c) Cake Software Foundation, Inc.、MIT License) から移植したものです。コピーして変更した
-ファイルには元の著作権表示が残されています。一覧は [NOTICE](../../NOTICE) を参照してください。
+ファイルには元の著作権表示が残されています。一覧は [NOTICE](../../NOTICE) をご覧ください。
 Raleway フォントは SIL Open Font License 1.1 でライセンスされています (`webroot/css/raleway-OFL.txt`)。
 
 <a id="origin"></a>
