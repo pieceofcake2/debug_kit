@@ -48,3 +48,11 @@ Please open an issue on [GitHub](https://github.com/pieceofcake2/debug_kit/issue
 ## Contributing
 
 See the [contribution guidelines](https://github.com/pieceofcake2/.github/blob/master/CONTRIBUTING.md).
+
+## Origin
+
+This package is a maintained fork of [cakephp/debug_kit](https://github.com/cakephp/debug_kit)
+(`cakephp/debug_kit` on Packagist, last upstream version 2.2.9), originally by Mark Story and the
+CakePHP community (Cake Software Foundation, Inc.). It is maintained for CakePHP 2 on modern PHP by
+[pieceofcake2](https://github.com/pieceofcake2). Changes from the original are listed in the
+[commit history since the fork](https://github.com/pieceofcake2/debug_kit/compare/80d8765...2.x).
