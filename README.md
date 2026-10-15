@@ -14,6 +14,13 @@ for [pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp).
 
 ![DebugKit toolbar](docs/img/sql_log.png)
 
+## Documentation
+
+- Website: https://pieceofcake2.github.io/debug_kit/
+- Markdown: [docs/README.md](docs/README.md) (for AI tools and offline reading)
+
+The Markdown documentation is also included in the Composer package, in the plugin's directory: `plugins/DebugKit/docs/README.md` (the location depends on your `installer-paths`). Install the package with `--dev` if you only need it for development.
+
 ## Requirements
 
 * PHP 8.0+
@@ -28,10 +35,6 @@ composer require --dev pieceofcake2/debug_kit
 Then load the plugin and add the `DebugKit.Toolbar` component to your `AppController`.
 See [Installation](docs/README.md#installation) for the details, including the
 `installer-paths` setting for the modern and legacy directory layouts.
-
-## Documentation
-
-See the [documentation](docs/README.md).
 
 ## Credits
 
