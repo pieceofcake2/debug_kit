@@ -37,5 +37,6 @@
 *.ttf binary
 *.eot binary
 
-# Exclude the documentation from Composer dist archives.
-/docs export-ignore
+# Keep the screenshots out of Composer dist archives; the Markdown
+# documentation in docs/ is included.
+/docs/img export-ignore
