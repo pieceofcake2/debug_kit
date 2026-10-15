@@ -21,7 +21,7 @@ for [pieceofcake2/cakephp](https://github.com/pieceofcake2/cakephp).
 
 ## Installation
 
-```
+```bash
 composer require --dev pieceofcake2/debug_kit
 ```
 
