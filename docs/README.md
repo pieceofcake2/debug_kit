@@ -20,7 +20,7 @@ DebugKit adds a debugging toolbar to CakePHP 2 applications. This plugin is a fo
 
 Install the plugin with [Composer](https://getcomposer.org/):
 
-```
+```bash
 composer require --dev pieceofcake2/debug_kit
 ```
 
