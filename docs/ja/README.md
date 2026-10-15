@@ -26,23 +26,23 @@ composer require --dev pieceofcake2/debug_kit
 インストールされます。正しい場所にインストールされるように、アプリケーションの `composer.json` で
 `installer-paths` を設定してください。
 
-| レイアウト | `installer-paths` |
+| 構成 | `installer-paths` |
 | --- | --- |
-| モダン (`config/`, `src/`, `templates/`, `plugins/`) | `"plugins/{$name}/": ["type:cakephp-plugin"]` |
-| レガシー (`app/Config/`, `app/Plugin/`) | `"app/Plugin/{$name}/": ["type:cakephp-plugin"]` |
+| モダン (`config/`、`src/`、`templates/`、`plugins/`) | `"plugins/{$name}/": ["type:cakephp-plugin"]` |
+| レガシー (`app/Config/`、`app/Plugin/`) | `"app/Plugin/{$name}/": ["type:cakephp-plugin"]` |
 
 <a id="enable-the-plugin"></a>
 
 ### プラグインを有効にする
 
-`config/bootstrap.php` (レガシーレイアウトでは `app/Config/bootstrap.php`) でプラグインを読み込みます。
+`config/bootstrap.php` (レガシー構成では `app/Config/bootstrap.php`) でプラグインを読み込みます。
 すでに `CakePlugin::loadAll()` を使っている場合は不要です。
 
 ```php
 CakePlugin::load('DebugKit');
 ```
 
-`src/Controller/AppController.php` (レガシーレイアウトでは `app/Controller/AppController.php`) に
+`src/Controller/AppController.php` (レガシー構成では `app/Controller/AppController.php`) に
 ツールバーのコンポーネントを追加します。
 
 ```php
@@ -54,7 +54,7 @@ class AppController extends Controller
 
 `config/core.php` で `debug` が 1 以上のときに、ツールバーが表示されます。
 
-レイアウト (通常は `templates/Layouts/default.ctp`、レガシーレイアウトでは
+レイアウト (通常は `templates/Layouts/default.ctp`、レガシー構成では
 `app/View/Layouts/default.ctp`) から `sql_dump` エレメントを削除してください。このエレメントは
 Sql Log パネルが読み込む前にクエリログを空にしてしまうので、パネルに "No query logs" と表示されます。
 
