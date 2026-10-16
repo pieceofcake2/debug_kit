@@ -64,7 +64,7 @@ class BrokenTestPanel extends DebugPanel
      * @param mixed $content The content.
      * @return string
      */
-    public function summary($content = null)
+    public function summary($content = null): void
     {
         throw new RuntimeException('summary failed');
     }
