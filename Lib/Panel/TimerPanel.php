@@ -11,11 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugPanel', 'DebugKit.Lib');
-App::uses('DebugTimer', 'DebugKit.Lib');
-App::uses('DebugMemory', 'DebugKit.Lib');
-App::uses('CakeNumber', 'Utility');
-
 /**
  * Provides debug information on all timers used in a request.
  */

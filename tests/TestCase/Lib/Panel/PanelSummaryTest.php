@@ -12,11 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugPanel', 'DebugKit.Lib');
-App::uses('TimerPanel', 'DebugKit.Lib/Panel');
-App::uses('VariablesPanel', 'DebugKit.Lib/Panel');
-App::uses('IncludePanel', 'DebugKit.Lib/Panel');
-
 /**
  * Tests for the panel summaries displayed in the toolbar.
  */

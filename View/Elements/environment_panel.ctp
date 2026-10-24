@@ -14,7 +14,6 @@
  * @link          http://cakephp.org CakePHP(tm) Project
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-App::uses('Debugger', 'Utility');
 ?>
 <h2><?php echo __d('debug_kit', 'App Constants'); ?></h2>
 <?php

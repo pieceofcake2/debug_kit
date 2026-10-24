@@ -12,10 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugKitDatabaseStorage', 'DebugKit.Lib/Storage');
-App::uses('Mysql', 'Model/Datasource/Database');
-App::uses('Sqlite', 'Model/Datasource/Database');
-
 /**
  * DebugKitDatabaseStorageTest
  */

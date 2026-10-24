@@ -11,9 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('View', 'View');
-App::uses('SimpleGraphHelper', 'DebugKit.View/Helper');
-
 /**
  * Class SimpleGraphHelperTest
  */

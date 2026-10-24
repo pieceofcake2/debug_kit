@@ -12,8 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('Model', 'Model');
-
 /**
  * The requests table tracks basic information about each request recorded by the toolbar.
  *

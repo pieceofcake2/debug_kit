@@ -14,9 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('ToolbarHelper', 'DebugKit.View/Helper');
-App::uses('HtmlToolbarHelper', 'DebugKit.View/Helper');
-
 /**
  * Class HtmlToolbarHelperTestCase
  *
@@ -33,7 +30,7 @@ class HtmlToolbarHelperTest extends CakeTestCase
     {
         App::build([
             'View' => [
-                CORE_TESTS . DS . 'test_app' . DS . 'View' . DS,
+                CORE_TESTS . DS . 'test_app' . DS . 'templates' . DS,
                 APP . 'Plugin' . DS . 'DebugKit' . DS . 'View' . DS,
                 CAKE_CORE_INCLUDE_PATH . DS . 'Cake' . DS . 'View' . DS,
             ],
