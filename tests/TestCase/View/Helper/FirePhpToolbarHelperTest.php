@@ -53,9 +53,11 @@ class FirePhpToolbarHelperTest extends CakeTestCase
      **/
     public static function setupBeforeClass(): void
     {
+        // The views of the core's test app are in templates/ since pieceofcake2/cakephp 2.13, in View/ before
+        $coreTestApp = CORE_TESTS . DS . 'test_app' . DS;
         App::build([
             'View' => [
-                CORE_TESTS . DS . 'test_app' . DS . 'View' . DS,
+                $coreTestApp . (is_dir($coreTestApp . 'templates') ? 'templates' : 'View') . DS,
                 APP . 'Plugin' . DS . 'DebugKit' . DS . 'View' . DS,
                 CAKE_CORE_INCLUDE_PATH . DS . 'Cake' . DS . 'View' . DS,
             ]], true);
