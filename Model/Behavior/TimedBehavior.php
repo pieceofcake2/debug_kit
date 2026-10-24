@@ -12,8 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugTimer', 'DebugKit.Lib');
-
 /**
  * Class TimedBehavior
  *

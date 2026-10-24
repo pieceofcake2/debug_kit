@@ -14,9 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('ToolbarHelper', 'DebugKit.View/Helper');
-App::uses('HtmlToolbarHelper', 'DebugKit.View/Helper');
-
 /**
  * Class HtmlToolbarHelperTestCase
  *

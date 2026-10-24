@@ -14,10 +14,19 @@
         "phpunit/phpunit": "^9.6",
         "pieceofcake2/app": "^2.2",
         "pieceofcake2/phpcs-cakephp2": "^1.1",
-        "pieceofcake2/phpstan-cakephp2": "^1.0"
+        "pieceofcake2/phpstan-cakephp2": "^1.1"
     },
     "replace": {
         "cakephp/debug_kit": "^2.0"
+    },
+    "autoload": {
+        "classmap": [
+            "Console/",
+            "Controller/",
+            "Lib/",
+            "Model/",
+            "View/"
+        ]
     },
     "autoload-dev": {
         "classmap": ["tests/test_app/"],

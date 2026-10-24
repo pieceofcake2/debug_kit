@@ -37,11 +37,10 @@
 パネルクラスは、`Lib` パスの中の `Panel` ディレクトリに置きます。ファイル名はクラス名と一致している
 必要があるので、`MyCustomPanel` は `src/Lib/Panel/MyCustomPanel.php` (レガシー構成では
 `app/Lib/Panel/MyCustomPanel.php`) にあるものとみなされます。パネルは `DebugPanel` を継承する必要が
-あります。
+あります。`DebugPanel` はプラグインのほかのクラスと同じく Composer が読み込むので、パネルに
+`App::uses()` は要りません。
 
 ```php
-App::uses('DebugPanel', 'DebugKit.Lib');
-
 class MyCustomPanel extends DebugPanel
 {
 }

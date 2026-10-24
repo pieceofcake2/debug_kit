@@ -12,9 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('Controller', 'Controller');
-App::uses('DebugKitStorage', 'DebugKit.Lib/Storage');
-
 /**
  * Base controller of the toolbar endpoints.
  *

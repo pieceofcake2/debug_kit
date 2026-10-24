@@ -12,10 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('Cache', 'Cache');
-App::uses('DebugKitDatabaseStorage', 'DebugKit.Lib/Storage');
-App::uses('DebugKitCacheStorage', 'DebugKit.Lib/Storage');
-
 /**
  * Resolves the storage used for the toolbar request history.
  *

@@ -11,8 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugPanel', 'DebugKit.Lib');
-
 /**
  * Provides debug information on the SQL logs and provides links to an ajax explain interface.
  */

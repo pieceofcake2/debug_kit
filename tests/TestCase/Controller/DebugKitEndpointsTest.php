@@ -12,10 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugKitStorage', 'DebugKit.Lib/Storage');
-App::uses('RequestsController', 'DebugKit.Controller');
-App::uses('PanelsController', 'DebugKit.Controller');
-
 /**
  * Tests for the toolbar endpoints: RequestsController and PanelsController.
  */

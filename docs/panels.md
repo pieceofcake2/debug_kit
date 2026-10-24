@@ -29,11 +29,10 @@ as logs or request information. You can choose which panels are shown and add yo
 
 Panel classes are placed in the `Panel` directory inside a `Lib` path. The file name must
 match the class name, so `MyCustomPanel` is expected in `src/Lib/Panel/MyCustomPanel.php`
-(legacy layout: `app/Lib/Panel/MyCustomPanel.php`). Panels must extend `DebugPanel`:
+(legacy layout: `app/Lib/Panel/MyCustomPanel.php`). Panels must extend `DebugPanel`, which Composer
+loads with the other classes of the plugin, so the panel does not need `App::uses()`:
 
 ```php
-App::uses('DebugPanel', 'DebugKit.Lib');
-
 class MyCustomPanel extends DebugPanel
 {
 }

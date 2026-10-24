@@ -14,9 +14,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  **/
 
-App::uses('ToolbarHelper', 'DebugKit.View/Helper');
-App::uses('FirePhpToolbarHelper', 'DebugKit.View/Helper');
-
 $path = CakePlugin::path('DebugKit');
 require_once $path . 'tests' . DS . 'TestCase' . DS . 'TestFireCake.php';
 

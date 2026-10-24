@@ -12,10 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('FireCake', 'DebugKit.Lib');
-App::uses('DebugTimer', 'DebugKit.Lib');
-App::uses('DebugMemory', 'DebugKit.Lib');
-
 /**
  * DebugKit Temporary Debugger Class
  *

@@ -11,8 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugPanel', 'DebugKit.Lib');
-
 /**
  * Provides information about your PHP and CakePHP environment to assist with debugging.
  */

@@ -11,8 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugPanel', 'DebugKit.Lib');
-
 /**
  * Provides a list of included files for the current request
  */

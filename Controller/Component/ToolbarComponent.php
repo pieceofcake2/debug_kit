@@ -13,12 +13,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugTimer', 'DebugKit.Lib');
-App::uses('DebugMemory', 'DebugKit.Lib');
-App::uses('DebugKitStorage', 'DebugKit.Lib/Storage');
-App::uses('CakeText', 'Utility');
-App::uses('View', 'View');
-
 /**
  * Class ToolbarComponent
  *
@@ -801,8 +795,13 @@ class ToolbarComponent extends Component implements CakeEventListener
             $className = ucfirst($panel) . 'Panel';
             [$plugin, $className] = pluginSplit($className, true);
 
-            App::uses($className, $plugin . 'Panel');
-            if (!class_exists($className)) {
+            if (version_compare(Configure::version(), '2.13', '>=')) {
+                $className = App::className($plugin . $className, 'Panel');
+            } elseif (!class_exists($className)) {
+                // pieceofcake2/cakephp 2.12 has no App::className(), and App::uses() is not deprecated there
+                App::uses($className, $plugin . 'Panel');
+            }
+            if ($className === null || !class_exists($className)) {
                 trigger_error(__d('debug_kit', 'Could not load DebugToolbar panel %s', $panel), E_USER_WARNING);
                 continue;
             }

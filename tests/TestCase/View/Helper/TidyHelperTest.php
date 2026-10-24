@@ -11,9 +11,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('View', 'View');
-App::uses('TidyHelper', 'DebugKit.View/Helper');
-
 /**
  * Class TidyHelperTest
  */

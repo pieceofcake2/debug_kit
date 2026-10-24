@@ -12,12 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('ConnectionManager', 'Model');
-App::uses('CakeSchema', 'Model');
-App::uses('DebugKitStorageInterface', 'DebugKit.Lib/Storage');
-App::uses('DebugKitRequest', 'DebugKit.Model');
-App::uses('DebugKitPanel', 'DebugKit.Model');
-
 /**
  * Stores the toolbar requests in a database, by default a SQLite database in `TMP/debug_kit.sqlite`.
  *

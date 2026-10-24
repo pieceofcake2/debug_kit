@@ -12,8 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugKitController', 'DebugKit.Controller');
-
 /**
  * Provides access to the panels of the recorded requests.
  */

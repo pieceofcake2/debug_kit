@@ -12,8 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('Model', 'Model');
-
 /**
  * The panels table holds the rendered output of each panel of each recorded request.
  *

@@ -12,9 +12,6 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-App::uses('DebugKitDebugger', 'DebugKit.Lib');
-App::uses('AppHelper', 'View/Helper');
-
 /**
  * Provides Base methods for content specific debug toolbar helpers.
  * Acts as a facade for other toolbars helpers as well.
