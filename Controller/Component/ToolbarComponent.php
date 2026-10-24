@@ -795,13 +795,8 @@ class ToolbarComponent extends Component implements CakeEventListener
             $className = ucfirst($panel) . 'Panel';
             [$plugin, $className] = pluginSplit($className, true);
 
-            if (version_compare(Configure::version(), '2.13', '>=')) {
-                $className = App::className($plugin . $className, 'Panel');
-            } elseif (!class_exists($className)) {
-                // pieceofcake2/cakephp 2.12 has no App::className(), and App::uses() is not deprecated there
-                App::uses($className, $plugin . 'Panel');
-            }
-            if ($className === null || !class_exists($className)) {
+            $className = App::className($plugin . $className, 'Panel');
+            if ($className === null) {
                 trigger_error(__d('debug_kit', 'Could not load DebugToolbar panel %s', $panel), E_USER_WARNING);
                 continue;
             }
